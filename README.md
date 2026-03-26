@@ -57,8 +57,8 @@ A lightweight scheduler watches for new papers and processes them automatically,
 
 ## Phase 2: Data Ingestion
 
-- [ ] Build a PDF ingestion module that accepts local files or URLs
-- [ ] Integrate a parsing library (e.g., `pdf-parse` or `pdfjs-dist`) to extract clean text
+- [x] Build a PDF ingestion module that accepts local files or URLs
+- [x] Integrate a parsing library (e.g., `pdf-parse` or `pdfjs-dist`) to extract clean text
 - [ ] Handle edge cases: scanned PDFs, multi-column layouts, references sections
 - [ ] Store raw extracted text in the database, linked to the uploaded file
 - [ ] Write a batch ingestion flow that processes multiple PDFs in one run
@@ -68,12 +68,13 @@ A lightweight scheduler watches for new papers and processes them automatically,
 
 ## Phase 3: LLM Summarization Pipeline
 
-- [ ] Design a structured prompt template for paper summarization:
+- [x] Design a structured prompt template for paper summarization:
+  - Summary
   - Key findings
-  - Novelty / contribution
-  - Potential real-world applications
+  - References
+  - Methodology
   - Limitations
-- [ ] Integrate OpenAI API as the summarization model
+- [x] Integrate OpenAI API as the summarization model
 - [ ] Implement long-context chunking strategy for papers exceeding token limits
 - [ ] Store structured summaries as JSON in the database, linked to the source paper
 - [ ] Add token usage logging per request (model, prompt tokens, completion tokens, cost estimate)

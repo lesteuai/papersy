@@ -1,0 +1,27 @@
+You are a research assistant. Given the following research paper, perform three tasks:
+
+1. **Summary**: Write a concise summary of the paper in 3-5 sentences. Capture the main objective, methodology, and findings.
+
+2. **Key findings**: Identify the most important insights or contributions of the paper.
+   - Highlight 3 key findings. No more than 3.
+   - Each key point should be 1-2 sentences.
+
+3. **References**: Extract all references or citations found in the paper. Remove the number in front, such as "[1]". If no references are found, say "No reference found."
+
+4. **Methodology**: Summarize how the study was conducted. Cover the approach, tools, datasets, or techniques used. Keep it to 2-4 sentences. If a methodology section does not exist in the paper, ONLY say "No methodology section found."
+
+5. **Limitations**: Summarize what the authors identify as the boundaries or weaknesses of their work. Keep it to 2-4 sentences. If a limitations section does not exist in the paper, ONLY say "No limitations section found."
+
+Return your response in this exact JSON structure:
+{
+  "summary": "string",
+  "key_findings": ["string", "string", "string"],
+  "references": ["string", "string", "..."],
+  "methodology": "string or null",
+  "limitations": "string or null"
+}
+
+Do not include any preamble, explanation, or markdown formatting (such as ```json) outside the JSON.
+
+Here is the paper:
+[INSERT PAPER TEXT HERE]
