@@ -4,7 +4,7 @@
   "description": "> An end-to-end AI-powered pipeline for ingesting, summarizing, and semantically searching academic research papers; built to demonstrate production-grade LLM integration, RAG architecture, and cloud-native deployment.",
   "main": "index.ts",
   "scripts": {
-    "test": "tsx  --inspect index.ts",
+    "test": "tsx  --inspect --env-file=.env index.ts",
     "start": "tsx --env-file=.env index.ts"
   },
   "author": "",
