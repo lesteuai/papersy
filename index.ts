@@ -24,7 +24,7 @@ async function main() {
   // Strip JSON backticks before parsing
   result = result.replace(/```json|```/g, "").trim();
 
-  console.log(JSON.parse(result as string));
+  console.log(result as string);
 }
 
 main();
