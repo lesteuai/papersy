@@ -14,16 +14,13 @@ labeled "Methodology", "Methods". If it does, summarize how the study was conduc
 5. **Limitations**: First, check if the paper contains an explicit section 
 labeled "Limitations". If it does, summarize what the authors identify as the boundaries or weaknesses of their work. Keep it to 2-4 sentences. If not, ONLY say "No limitations section found."
 
-Return your response in this exact JSON structure **in text only**:
+Return your response in this exact JSON structure, without JSON backticks (```json):
 {
   "summary": "string",
   "key_findings": ["string", "string", "string"],
   "references": ["string", "string", "..."],
-  "methodology": "string or null",
-  "limitations": "string or null"
+  "methodology": "string",
+  "limitations": "string"
 }
 
 Do not include any preamble, explanation, or markdown formatting outside the JSON.
-
-Here is the paper:
-[INSERT PAPER TEXT HERE]
