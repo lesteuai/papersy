@@ -17,11 +17,11 @@ A lightweight scheduler watches for new papers and processes them automatically,
 ## Key Features
 
 - **PDF Ingestion**: Upload single papers or batch-process entire folders
-- **LLM Summarization**: Structured summaries via GPT-4 and Claude (Amazon Bedrock), with long-context chunking for large papers
+- **LLM Summarization**: Structured summaries via OpenAI GPT or through Amazon Bedrock, with long-context chunking for large papers
 - **Semantic Search**: Natural language queries across all ingested papers using vector embeddings
 - **Automated Pipeline**: Scheduled job processing with async task queue and status tracking
 - **Usage Dashboard**: Token consumption, cost estimates, and processing stats
-- **Fully Containerized**: Docker + Docker Compose for local dev, deployed to the cloud via CI/CD
+- **Full-Stack SvelteKit**: Single unified app — frontend, backend routes, and API in one project
 
 ---
 
@@ -29,14 +29,12 @@ A lightweight scheduler watches for new papers and processes them automatically,
 
 | Layer | Technology |
 |---|---|
-| LLM APIs | OpenAI GPT-4, Claude via Amazon Bedrock |
-| Embeddings & Search | OpenAI Embeddings, ChromaDB / Pinecone |
-| Backend | FastAPI, Python |
-| Task Queue | Celery + Redis / APScheduler |
-| Frontend | Streamlit or React |
-| Database | PostgreSQL |
+| LLM & Embeddings | OpenAI (GPT, text-embedding-3-small), Amazon Bedrock |
+| Frontend & Backend | SvelteKit (full-stack) |
+| Database | PostgreSQL (Supabase or Amazon RDS) |
+| Vector Search | pgvector |
 | Containerization | Docker, Docker Compose |
-| Cloud Deployment | Cloud Run / Azure Container Apps / AWS ECS |
+| Cloud Deployment | Vercel / AWS (EC2, ECS) |
 | CI/CD | GitHub Actions |
 
 ---
@@ -47,22 +45,23 @@ A lightweight scheduler watches for new papers and processes them automatically,
 
 ## Phase 1: Project Setup & Infrastructure
 
-- [ ] Initialize Git repository with `.gitignore`, `README.md`, and branch strategy
-- [ ] Define project folder structure (backend, frontend, pipeline, infra)
-- [ ] Set up Python virtual environment and `requirements.txt` / `pyproject.toml`
-- [ ] Configure environment variable management (`.env`, `python-dotenv`)
-- [ ] Set up Docker and write base `Dockerfile` for the backend service
+- [x] Initialize Git repository with `.gitignore`, `README.md`, and branch strategy
+- [ ] Scaffold SvelteKit project with TypeScript
+- [ ] Configure environment variable management (`.env`, `$env/static/private`)
+- [ ] Set up Docker and write base `Dockerfile`
 - [ ] Write `docker-compose.yml` to orchestrate backend, frontend, and database services locally
+- [ ] Set up PostgreSQL
+- [ ] Enable pgvector extension
 
 ---
 
 ## Phase 2: Data Ingestion
 
 - [ ] Build a PDF ingestion module that accepts local files or URLs
-- [ ] Integrate a parsing library (e.g., `pdfplumber` or `PyMuPDF`) to extract clean text
+- [ ] Integrate a parsing library (e.g., `pdf-parse` or `pdfjs-dist`) to extract clean text
 - [ ] Handle edge cases: scanned PDFs, multi-column layouts, references sections
-- [ ] Store raw extracted text in a database (PostgreSQL or SQLite for dev)
-- [ ] Write a batch ingestion script that processes a folder of PDFs in one run
+- [ ] Store raw extracted text in the database, linked to the uploaded file
+- [ ] Write a batch ingestion flow that processes multiple PDFs in one run
 - [ ] Add basic metadata extraction: title, authors, publication date (via regex or LLM)
 
 ---
@@ -74,8 +73,7 @@ A lightweight scheduler watches for new papers and processes them automatically,
   - Novelty / contribution
   - Potential real-world applications
   - Limitations
-- [ ] Integrate OpenAI API (GPT-4) as the primary summarization model
-- [ ] Add Claude (via Amazon Bedrock) as a secondary/fallback model
+- [ ] Integrate OpenAI API as the summarization model
 - [ ] Implement long-context chunking strategy for papers exceeding token limits
 - [ ] Store structured summaries as JSON in the database, linked to the source paper
 - [ ] Add token usage logging per request (model, prompt tokens, completion tokens, cost estimate)
@@ -84,41 +82,39 @@ A lightweight scheduler watches for new papers and processes them automatically,
 
 ## Phase 4: Semantic Search (RAG Layer)
 
-- [ ] Integrate an embedding model (e.g., `text-embedding-3-small` from OpenAI)
-- [ ] Set up a vector store (e.g., ChromaDB locally, or Pinecone for cloud)
+- [ ] Integrate OpenAI `text-embedding-3-small` for paper embeddings
+- [ ] Store embeddings in PostgreSQL using pgvector
 - [ ] Chunk paper text and upsert embeddings into the vector store on ingestion
 - [ ] Build a semantic search endpoint: given a query, return top-k relevant papers
 - [ ] Combine vector search with keyword metadata filters (author, date, topic)
 
 ---
 
-## Phase 5: Backend API
+## Phase 5: Backend API (SvelteKit Server Routes)
 
-- [ ] Scaffold a REST API using FastAPI
+- [ ] Scaffold API routes under `src/routes/api/`
 - [ ] Endpoints to build:
-  - `POST /papers/ingest`: upload and process a PDF
-  - `GET /papers`: list all papers with metadata and summary
-  - `GET /papers/{id}`: retrieve full summary and details for one paper
-  - `POST /search`: semantic search across ingested papers
-  - `GET /stats`: token usage, cost estimates, paper counts
-- [ ] Add input validation with Pydantic models
-- [ ] Add basic error handling and logging middleware
+  - `POST /api/papers/ingest`: upload and process a PDF
+  - `GET /api/papers`: list all papers with metadata and summary
+  - `GET /api/papers/[id]`: retrieve full summary and details for one paper
+  - `POST /api/search`: semantic search across ingested papers
+  - `GET /api/stats`: token usage, cost estimates, paper counts
+- [ ] Add input validation and error handling
 
 ---
 
 ## Phase 6: Job Scheduler (Pipeline Orchestration)
 
-- [ ] Set up a scheduled job to watch an input folder or S3 bucket for new PDFs
+- [ ] Set up a scheduled job to watch for new PDFs (folder, S3 bucket or Supabase Storage bucket)
 - [ ] Use a lightweight scheduler (e.g., `APScheduler` or a serverless cron trigger)
-- [ ] Build a processing queue so papers are summarized asynchronously (Celery + Redis, or simple task queue)
+- [ ] Build a processing queue so papers are summarized asynchronously
 - [ ] Add job status tracking: `pending`, `processing`, `complete`, `failed`
 - [ ] Send a notification (email or webhook) when a batch job completes
 
 ---
 
-## Phase 7: Frontend (Streamlit or React)
+## Phase 7: Frontend (SvelteKit)
 
-- [ ] Scaffold frontend: Streamlit for speed, React for polish
 - [ ] Build paper upload interface (drag-and-drop PDF uploader)
 - [ ] Build paper list view with metadata, tags, and summary preview
 - [ ] Build paper detail view with full structured summary
@@ -139,23 +135,24 @@ A lightweight scheduler watches for new papers and processes them automatically,
   - Build and push Docker image to container registry
   - Deploy to cloud on merge to `main`
 - [ ] Configure secrets management in the cloud environment (not hardcoded `.env`)
-- [ ] Set up a managed cloud database (Cloud SQL, Azure DB, or RDS)
+- [ ] Set up a managed cloud database (Amazon RDS)
 
 ---
-
-## Phase 9: Testing & Quality
+## Phase 8: Testing & Quality
 
 - [ ] Write unit tests for ingestion, chunking, and prompt-building logic
-- [ ] Write integration tests for API endpoints
+- [ ] Write integration tests for API routes
 - [ ] Test pipeline with a diverse set of papers (short, long, multi-column, scanned)
-- [ ] Benchmark summarization quality across GPT-4 and Claude outputs
 - [ ] Load test the API with concurrent ingestion requests
 
 ---
 
-## Phase 10: Documentation & Portfolio Polish
+## Phase 9: Deployment & Documentation
 
-- [ ] Write a thorough `README.md`:
+- [ ] Deploy SvelteKit app to Vercel
+- [ ] Configure Supabase environment variables in Vercel
+- [ ] Set up CI/CD pipeline (GitHub Actions): lint, test, deploy on merge to `main`
+- [ ] Write thorough `README.md`:
   - Project overview and motivation
   - Architecture diagram
   - Local setup instructions
