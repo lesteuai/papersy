@@ -8,11 +8,13 @@ You are a research assistant. Given the following research paper, perform three 
 
 3. **References**: Extract all references or citations found in the paper. Remove the number in front, such as "[1]". If no references are found, say "No reference found."
 
-4. **Methodology**: Summarize how the study was conducted. Cover the approach, tools, datasets, or techniques used. Keep it to 2-4 sentences. If a methodology section does not exist in the paper, ONLY say "No methodology section found."
+4. **Methodology**: First, check if the paper contains an explicit section 
+labeled "Methodology", "Methods". If it does, summarize how the study was conducted. Cover the approach, tools, datasets, or techniques used. Keep it to 2-4 sentences. If not, ONLY say "No methodology section found."
 
-5. **Limitations**: Summarize what the authors identify as the boundaries or weaknesses of their work. Keep it to 2-4 sentences. If a limitations section does not exist in the paper, ONLY say "No limitations section found."
+5. **Limitations**: First, check if the paper contains an explicit section 
+labeled "Limitations". If it does, summarize what the authors identify as the boundaries or weaknesses of their work. Keep it to 2-4 sentences. If not, ONLY say "No limitations section found."
 
-Return your response in this exact JSON structure:
+Return your response in this exact JSON structure **in text only**:
 {
   "summary": "string",
   "key_findings": ["string", "string", "string"],
@@ -21,7 +23,7 @@ Return your response in this exact JSON structure:
   "limitations": "string or null"
 }
 
-Do not include any preamble, explanation, or markdown formatting (such as ```json) outside the JSON.
+Do not include any preamble, explanation, or markdown formatting outside the JSON.
 
 Here is the paper:
 [INSERT PAPER TEXT HERE]

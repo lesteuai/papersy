@@ -19,7 +19,12 @@ async function main() {
     messages: [{ role: 'user', content: prompt }],
   });
 
-  console.log(JSON.parse(completion.choices[0].message.content as string));
+  let result = completion.choices[0].message.content as string;
+
+  // Strip JSON backticks before parsing
+  result = result.replace(/```json|```/g, "").trim();
+
+  console.log(JSON.parse(result as string));
 }
 
 main();
