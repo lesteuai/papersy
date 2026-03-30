@@ -2,7 +2,15 @@ import fs from 'fs/promises';
 import { PDFParse } from 'pdf-parse';
 import { ChatOpenAI } from '@langchain/openai';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
-import { JsonOutputParser } from '@langchain/core/output_parsers';
+import { z } from 'zod';
+
+const SummarySchema = z.object({
+  summary: z.string().describe('Concise summary of the paper in 3-5 sentences covering objective, methodology, and findings'),
+  key_findings: z.array(z.string()).length(3).describe('Exactly 3 most important insights or contributions, each 1-2 sentences'),
+  references: z.array(z.string()).describe('All references extracted from the paper, without leading numeric labels. Empty array if none found.'),
+  methodology: z.string().describe('Summary of how the study was conducted (2-4 sentences), or exactly "No methodology section found." if no Methodology/Methods section exists'),
+  limitations: z.string().describe('Summary of stated limitations (2-4 sentences), or exactly "No limitations section found." if no Limitations section exists'),
+});
 
 const { LLAMA_URL, PDF_URL, PROMPT_URL } = process.env;
 
@@ -38,7 +46,7 @@ async function main(): Promise<void> {
     ['human', '{paperText}'],
   ]);
 
-  const chain = prompt.pipe(llm).pipe(new JsonOutputParser());
+  const chain = prompt.pipe(llm.withStructuredOutput(SummarySchema));
 
   const result = await chain.invoke({ systemPrompt, paperText });
   console.log(result);
