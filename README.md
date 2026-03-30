@@ -47,11 +47,11 @@ A lightweight scheduler watches for new papers and processes them automatically,
 
 - [x] Initialize Git repository with `.gitignore`, `README.md`, and branch strategy
 - [ ] Scaffold SvelteKit project with TypeScript
-- [ ] Configure environment variable management (`.env`, `$env/static/private`)
+- [x] Configure environment variable management (`.env`, `$env/static/private`)
 - [ ] Set up Docker and write base `Dockerfile`
 - [ ] Write `docker-compose.yml` to orchestrate backend, frontend, and database services locally
-- [ ] Set up PostgreSQL
-- [ ] Enable pgvector extension
+- [x] Set up PostgreSQL
+- [x] Enable pgvector extension
 
 ---
 

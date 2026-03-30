@@ -1,0 +1,28 @@
+name: postgres
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg18-trixie
+    container_name: postgres
+    environment:
+      POSTGRES_PASSWORD: 1
+    networks:
+      - myNet
+    volumes:
+      - postgres:/var/lib/postgresql
+  
+  adminer:
+    image: adminer:latest
+    networks:
+      - myNet
+    ports:
+      - 8081:8080
+
+
+networks:
+  myNet:
+    external: true
+
+volumes:
+  postgres:
+    external: true
