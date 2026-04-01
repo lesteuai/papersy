@@ -1,8 +1,6 @@
 <script>
 	import '$lib/scss/global.scss';
 	import Header from '$lib/components/organisms/Header.svelte';
-	import Footer from '$lib/components/organisms/Footer.svelte';
-
 	import { page } from '$app/state';
 	import { description, image, keywords, title, siteBaseUrl } from '$lib/data/meta';
 
@@ -36,4 +34,3 @@
 <main>
 	{@render children()}
 </main>
-<Footer />
