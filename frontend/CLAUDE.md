@@ -3,7 +3,7 @@
 - **Language**: TypeScript
 - **Framework**: SvelteKit 5 + Vite
 - **Package Manager**: npm
-- **Build**: `adapter-static` (fully prerendered static site)
+- **Build**: `adapter-static` (SPA mode: `prerender: true, ssr: false`)
 - **Styling**: SCSS with CSS custom properties, dark/light theming
 - **Add-ons**: prettier, eslint, vitest, playwright, tailwindcss, better-auth, mdsvex, mcp
 
@@ -11,7 +11,7 @@
 
 ## High-Level Architecture
 
-**Le Steu AI** is a static marketing website for a paper summarization product (Papersy). Fully prerendered with SvelteKit's static adapter.
+**Papersy** is a single-page application (SPA) for paper summarization. Built with SvelteKit's static adapter (`prerender: true, ssr: false`) — generates `index.html` + client-side routing only. The entire app runs at the `/` route.
 
 ### Key Directories
 
@@ -22,7 +22,7 @@
   - [stores/](src/lib/stores/CLAUDE.md) — Svelte stores (theme)
   - [utils/](src/lib/utils/CLAUDE.md) — Types and utilities
   - [data/](src/lib/data/CLAUDE.md) — Static data exports
-- **[src/routes/](src/routes/CLAUDE.md)** — File-based routing. Home (`/`), About, Contact, Papersy product page, blog posts, RSS endpoint.
+- **[src/routes/](src/routes/CLAUDE.md)** — File-based routing. The app root is `/` (SPA shell, no subroutes). No blog, marketing, or public pages.
 
 ### Styling & Theming
 

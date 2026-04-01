@@ -10,6 +10,27 @@ Svelte writable stores with persistent or DOM-coupled side effects.
 
 ---
 
+## auth.ts
+
+Export: `loggedIn` — a Svelte writable store of type `boolean`.
+
+Import via `$lib/stores/auth`.
+
+### Valid values
+`true` | `false`
+
+### Initial value
+`false` — user starts logged out.
+
+### Side effects
+None. The store is simple and stateless — calling `loggedIn.set(value)` only updates the store, no DOM/storage writes.
+
+### Consumers
+- `src/routes/+page.svelte` — reads to show/hide Login vs. File Manager UI
+- `src/lib/components/organisms/Header.svelte` — reads to show/hide Logout button
+
+---
+
 ## theme.ts
 
 Export: `theme` — a custom Svelte writable store of type `string`.
