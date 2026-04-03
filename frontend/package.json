@@ -60,6 +60,12 @@
 	"dependencies": {
 		"@fontsource/inter": "^5.2.8",
 		"@fontsource/merriweather": "^5.2.11",
-		"@fontsource/ubuntu-mono": "^5.2.8"
+		"@fontsource/ubuntu-mono": "^5.2.8",
+		"@langchain/community": "^1.1.27",
+		"@langchain/core": "^1.1.38",
+		"@langchain/openai": "^1.4.1",
+		"langchain": "^1.2.39",
+		"pdf-parse": "^2.4.5",
+		"pg": "^8.20.0"
 	}
 }

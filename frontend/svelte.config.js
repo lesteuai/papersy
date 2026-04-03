@@ -1,5 +1,5 @@
 import { mdsvex } from 'mdsvex';
-import adapter from '@sveltejs/adapter-static';
+import adapter from '@sveltejs/adapter-node';
 import { relative, sep } from 'node:path';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
