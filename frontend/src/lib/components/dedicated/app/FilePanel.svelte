@@ -6,12 +6,14 @@
 	let {
 		files,
 		selectedFileId,
+		uploading = false,
 		onUpload,
 		onSelect,
 		onDelete
 	}: {
 		files: PapersyFile[];
 		selectedFileId: string | null;
+		uploading?: boolean;
 		onUpload: (file: File) => void;
 		onSelect: (id: string) => void;
 		onDelete: (id: string) => void;
@@ -38,8 +40,8 @@
 			class="hidden-input"
 			onchange={handleFileChange}
 		/>
-		<Button style="understated" size="small" onclick={() => fileInput.click()}>
-			Upload
+		<Button style="understated" size="small" onclick={() => fileInput.click()} disabled={uploading}>
+			{uploading ? 'Processing...' : 'Upload'}
 		</Button>
 	</div>
 

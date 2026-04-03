@@ -10,6 +10,7 @@
 	let files: PapersyFile[] = $state([]);
 	let selectedFileId: string | null = $state(null);
 	let selectedFile = $derived(files.find((f) => f.id === selectedFileId) ?? null);
+	let uploading = $state(false);
 
 	// Content state
 	let mode: Mode = $state('summary');
@@ -25,9 +26,29 @@
 		return null;
 	}
 
-	function handleUpload(file: File) {
-		const id = crypto.randomUUID();
-		files = [...files, { id, name: file.name }];
+	async function handleUpload(file: File) {
+		uploading = true;
+		const formData = new FormData();
+		formData.append('file', file);
+		const res = await fetch('/api/upload', { method: 'POST', body: formData });
+		uploading = false;
+		if (!res.ok) return;
+		const data = await res.json();
+		files = [
+			...files,
+			{
+				id: data.id,
+				name: data.name,
+				summaryData: {
+					summary: data.summary,
+					keyFindings: data.keyFindings,
+					methodology: data.methodology,
+					limitations: data.limitations,
+					references: data.references,
+				},
+			},
+		];
+		selectedFileId = data.id;
 	}
 
 	function handleSelect(id: string) {
@@ -68,6 +89,7 @@
 			<FilePanel
 				{files}
 				{selectedFileId}
+				{uploading}
 				onUpload={handleUpload}
 				onSelect={handleSelect}
 				onDelete={handleDelete}
@@ -78,7 +100,7 @@
 				<ContentPanel
 					{mode}
 					{messages}
-					summaryData={null}
+					summaryData={selectedFile?.summaryData ?? null}
 					onBack={handleBack}
 					onModeChange={(m) => (mode = m)}
 					onSend={handleSend}
