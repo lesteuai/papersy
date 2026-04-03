@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { loggedIn } from '$lib/stores/auth';
+	import { authClient } from '$lib/auth-client';
 	import LoginCard from '$lib/components/dedicated/app/LoginCard.svelte';
 	import FilePanel from '$lib/components/dedicated/app/FilePanel.svelte';
 	import ContentPanel from '$lib/components/dedicated/app/ContentPanel.svelte';
@@ -16,6 +17,13 @@
 
 	// Mobile panel visibility — only relevant in portrait
 	let mobileActivePanel: 'files' | 'content' = $state('files');
+
+	async function handleLogin(email: string, password: string): Promise<string | null> {
+		const { error } = await authClient.signIn.email({ email, password });
+		if (error) return error.message ?? 'Login failed';
+		loggedIn.set(true);
+		return null;
+	}
 
 	function handleUpload(file: File) {
 		const id = crypto.randomUUID();
@@ -53,7 +61,7 @@
 </script>
 
 {#if !$loggedIn}
-	<LoginCard onLogin={() => loggedIn.set(true)} />
+	<LoginCard onLogin={handleLogin} />
 {:else}
 	<div class="app-shell">
 		<div class="file-panel-wrap" class:hidden={mobileActivePanel === 'content'}>
