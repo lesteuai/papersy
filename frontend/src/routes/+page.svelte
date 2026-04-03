@@ -1,13 +1,21 @@
 <script lang="ts">
 	import { loggedIn } from '$lib/stores/auth';
 	import { authClient } from '$lib/auth-client';
+	import { onMount } from 'svelte';
 	import LoginCard from '$lib/components/dedicated/app/LoginCard.svelte';
 	import FilePanel from '$lib/components/dedicated/app/FilePanel.svelte';
 	import ContentPanel from '$lib/components/dedicated/app/ContentPanel.svelte';
 	import type { PapersyFile, ChatMessage, Mode } from '$lib/components/dedicated/app/types';
 
-	// File state
-	let files: PapersyFile[] = $state([]);
+	let { data } = $props();
+
+	// Sync loggedIn store from server session on mount
+	onMount(() => {
+		if (data.loggedIn) loggedIn.set(true);
+	});
+
+	// File state — seed from server on load
+	let files: PapersyFile[] = $state(data.papers ?? []);
 	let selectedFileId: string | null = $state(null);
 	let selectedFile = $derived(files.find((f) => f.id === selectedFileId) ?? null);
 	let uploading = $state(false);
