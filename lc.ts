@@ -1,7 +1,7 @@
 import * as z from "zod";
-import { createAgent, tool, initChatModel } from "langchain";
-// npm install @langchain/openai
-// (using OpenAI-compatible interface to talk to your local server)
+import { createAgent, tool } from "langchain";
+import { ChatOpenAI } from "@langchain/openai";
+const env = process.env;
 
 function getWeatherReal ({ city }: {city:string}) {
     return `It's always sunny in ${city}!`;
@@ -20,10 +20,12 @@ async function main() {
     );
 
     // Point to your local model server instead of a cloud provider
-    const model = await initChatModel("your-local-model-name", {
-    modelProvider: "openai",   // use the OpenAI-compatible interface
-    baseUrl: "http://localhost:8033/v1",
-    apiKey: "not-needed",      // most local servers don't check this, but the field is required
+    const model = new ChatOpenAI({
+        model: "local",
+        configuration: {
+            baseURL: env.CHAT_MODEL_URL,
+            apiKey: "local",
+        },
     });
 
     const agent = createAgent({
@@ -35,6 +37,10 @@ async function main() {
     const result = await agent.invoke({
         messages: [{ role: "user", content: "What's the weather in Tokyo?" }],
     });
+    // for (const message of result.messages) {
+    //     console.log(`[${message.constructor.name}]:`, message.content);
+    //     console.log("-----");
+    // }
     console.log(result.messages);
 }
 

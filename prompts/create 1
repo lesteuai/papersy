@@ -1,4 +1,0 @@
-Read documentation for the following libraries:
-pdf-parse: https://www.npmjs.com/package/pdf-parse
-openai for Javascript (same as Typescript I assume): https://developers.openai.com/api/docs
-Build a pipeline that extract text from PDF 'report.pdf' out, feeds it to openai (api address at http://localhost:8033/v1) by replacing the content of the PDF in [INSERT PAPER TEXT HERE] at summarize_prompt.txt 
