@@ -72,12 +72,19 @@
 		}
 	}
 
-	function handleSend(text: string) {
+	async function handleSend(text: string) {
 		messages = [...messages, { role: 'user', text }];
-		// AI response placeholder — replace with real API call
-		setTimeout(() => {
-			messages = [...messages, { role: 'ai', text: 'This feature will connect to the backend soon.' }];
-		}, 500);
+		const res = await fetch('/api/chat', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ paperId: selectedFileId, messages }),
+		});
+		if (!res.ok) {
+			messages = [...messages, { role: 'ai', text: 'Error: failed to get a response.' }];
+			return;
+		}
+		const data = await res.json();
+		messages = [...messages, { role: 'ai', text: data.text }];
 	}
 </script>
 
