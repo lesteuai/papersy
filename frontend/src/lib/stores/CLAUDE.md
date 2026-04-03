@@ -25,9 +25,16 @@ Import via `$lib/stores/auth`.
 ### Side effects
 None. The store is simple and stateless — calling `loggedIn.set(value)` only updates the store, no DOM/storage writes.
 
+### Server sync
+`+page.svelte` syncs this store from server data on mount:
+```ts
+onMount(() => { if (data.loggedIn) loggedIn.set(true); });
+```
+This restores auth state on page refresh without an extra client-side API call.
+
 ### Consumers
-- `src/routes/+page.svelte` — reads to show/hide Login vs. File Manager UI
-- `src/lib/components/organisms/Header.svelte` — reads to show/hide Logout button
+- `src/routes/+page.svelte` — reads to show/hide Login vs. File Manager UI; sets `true` on login, `true` on mount if server session exists
+- `src/lib/components/organisms/Header.svelte` — reads to show/hide Logout button; on logout calls `authClient.signOut()` then `loggedIn.set(false)`
 
 ---
 

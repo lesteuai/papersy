@@ -1,6 +1,6 @@
 # src/routes
 
-SvelteKit file-based routing. Single-page application (SPA) at the root `/`. All routing is client-side via Svelte stores.
+SvelteKit file-based routing. Full-stack SSR application with authenticated pages and REST API routes.
 
 ---
 
@@ -8,80 +8,184 @@ SvelteKit file-based routing. Single-page application (SPA) at the root `/`. All
 
 ```
 src/routes/
-├── +layout.ts          ← export const prerender = true, ssr = false
-├── +layout.svelte      ← imports global.scss, renders Header, slot
+├── +layout.ts                    ← export const ssr = true
+├── +layout.svelte                ← Header + outlet, global styles
+├── +page.server.ts               ← load(): fetch user's papers from DB
+├── +page.svelte                  ← App shell: Login page or File+Content panels
 │
-└── +page.svelte        ← SPA shell: Login (Page 1), File Manager + Summary/Chat (Pages 2–3)
+└── api/
+    ├── auth/[...all]/+server.ts  ← GET/POST catch-all for better-auth
+    ├── upload/+server.ts         ← POST: PDF → summarize → vectorize
+    ├── chat/+server.ts           ← POST: RAG agent with history
+    └── papers/[id]/+server.ts    ← DELETE: paper + cascading cleanup
+
+(src/hooks.server.ts at project root handles auth per-request)
 ```
 
 ---
 
 ## Root layout
 
-**`+layout.ts`** — sets `export const prerender = true` and `export const ssr = false`.
-- `prerender: true` → generates `index.html` at build time (the SPA shell)
-- `ssr: false` → no server-side rendering; app runs entirely in the browser
+**`+layout.ts`** — `export const ssr = true`
+- Server-side rendering enabled; all pages rendered on server per request
 
-**`+layout.svelte`** — imports `global.scss`, renders `<Header />` and `<main><slot /></main>`. No Footer.
-- `<Header />` is static (not floating), conditional Logout button when logged in
-- Global `<svelte:head>` meta tags (basic page title)
+**`+layout.svelte`**
+- Renders `<Header />` and `<main>{@render children()}</main>`
+- Imports `global.scss`
 
 ---
 
-## SPA app shell (`/`)
+## Root page (`/`)
 
-**`+page.svelte`** — single-page app shell. Full client-side state management via Svelte stores and runes.
+**`+page.server.ts`** — `load()` function
 
-### Pages
+Returns `{ papers: PapersyFile[], loggedIn: boolean }` to `+page.svelte`.
 
-1. **Page 1: Login** — When `$loggedIn = false`
-   - Centered `<LoginCard />` with username/password form
-   - On submit: `loggedIn.set(true)`
+- Checks `auth.api.getSession({ headers: request.headers })`
+- If no session: `{ papers: [], loggedIn: false }`
+- If session: queries `paper` table filtered by `userId`, fetches `reference` rows for each, returns as `PapersyFile[]` with populated `summaryData`
 
-2. **Page 2: File Manager + Summary View** — When `$loggedIn = true`, file selected
-   - Left panel: `<FilePanel />` — Upload button, file list, delete menus
-   - Right panel: `<ContentPanel />` — Mode toggle (Summary/Chat), Summary view with sections (scrollable), Chat input
+**`+page.svelte`** — App shell
 
-3. **Page 3: Chat** — Same panels, chat mode active
-   - Right panel: scrollable message list + chat input
+**Logical states:**
 
-### State Management
+1. **Login** — when `!$loggedIn`
+   - Centered `<LoginCard />` with email/password form
+   - `onLogin: (email, password) => Promise<string | null>`
+   - Calls `authClient.signIn.email({ email, password })`, sets `loggedIn.set(true)` on success
 
-**Stores:**
-- `loggedIn` — writable boolean, persists auth state
+2. **File Manager + Summary** — `$loggedIn`, file selected
+   - Left: `<FilePanel />` — Upload, file list, delete menus
+   - Right: `<ContentPanel mode="summary" />` — summary, findings, methodology, limitations, references
 
-**Local component state (runes):**
-- `files` — array of `PapersyFile` (id, name)
-- `selectedFileId` — currently selected file
-- `mode` — 'summary' | 'chat'
-- `messages` — array of `ChatMessage` (role, text)
-- `mobileActivePanel` — 'files' | 'content' (portrait mobile only)
+3. **File Manager + Chat** — `$loggedIn`, chat mode active
+   - Same layout; right panel shows chat history + input
 
-### Responsive Behavior
+**State:**
 
-**Desktop/Landscape:** Two-panel layout
-- Left: `flex: 0 0 28%` (220–300px)
-- Right: `flex: 1` (remaining space)
+```ts
+let { data } = $props();                        // from +page.server.ts
+onMount(() => { if (data.loggedIn) loggedIn.set(true); });
 
-**Portrait Mobile:** Single-panel full-width
-- Show only the active panel (`files` or `content`)
-- Back button on content panel toggles back to files list
-- Selecting a file switches to content panel
+let files = $state(data.papers ?? []);          // PapersyFile[]
+let selectedFileId = $state(null);
+let selectedFile = $derived(files.find(f => f.id === selectedFileId));
+let mode = $state('summary');                   // 'summary' | 'chat'
+let messages = $state([]);                      // ChatMessage[]
+let uploading = $state(false);
+let mobileActivePanel = $state('files');        // 'files' | 'content'
+```
 
-### Layout CSS
+**Event handlers:**
 
-```scss
-.app-shell { display: flex; height: calc(100vh - 85px); }
-.file-panel-wrap { flex: 0 0 28%; min-width: 220px; max-width: 300px; }
-.content-panel-wrap { flex: 1; }
-@media (orientation: portrait) and (max-width: 767px) {
-  .file-panel-wrap, .content-panel-wrap { flex: 0 0 100%; width: 100%; }
-  .hidden { display: none; }
+| Handler | What it does |
+|---|---|
+| `handleLogin(email, password)` | `authClient.signIn.email(...)`, sets loggedIn |
+| `handleUpload(file)` | POST `/api/upload`, appends to files, sets selectedFileId |
+| `handleSelect(id)` | sets selectedFileId, switches mobile panel |
+| `handleDelete(id)` | DELETE `/api/papers/:id`, removes from files |
+| `handleSend(text)` | POST `/api/chat` with history, appends AI reply |
+| `handleBack()` | toggles mobile panel to files |
+
+---
+
+## API Routes
+
+### POST `/api/upload`
+
+**Request:** `FormData { file: File }` (PDF only)
+
+**Response (200):**
+```json
+{
+  "id": "uuid",
+  "name": "filename.pdf",
+  "summary": "...",
+  "keyFindings": ["...", "...", "..."],
+  "methodology": "...",
+  "limitations": "...",
+  "references": ["..."]
 }
 ```
+
+**Pipeline:**
+1. Auth check (401 if no session)
+2. Validate PDF (400 if not PDF)
+3. `pdf-parse(buffer)` → extract text
+4. `ChatOpenAI.withStructuredOutput(SummarySchema)` → structured summary
+5. Insert `paper` row (userId FK)
+6. Insert `reference` rows (one per reference)
+7. Split text (1000 chars / 200 overlap) → embed → insert into `documents` with `{ paperId }` metadata
+8. Return paper JSON
+
+---
+
+### POST `/api/chat`
+
+**Request:**
+```json
+{ "paperId": "uuid", "messages": [{ "role": "user"|"ai", "text": "..." }] }
+```
+
+**Response (200):** `{ "text": "AI response" }`
+
+**Pipeline:**
+1. Auth check (401)
+2. Validate paperId (400)
+3. `createRagAgent(paperId)` — retrieve tool filtered by paperId metadata
+4. Map messages to LangChain `HumanMessage`/`AIMessage`
+5. `agent.invoke({ messages: [systemPrompt, ...history] })`
+6. `vectorStore.end()`
+7. Return last message text
+
+---
+
+### DELETE `/api/papers/[id]`
+
+**Response:** 204 No Content
+
+**Pipeline:**
+1. Auth check (401)
+2. Verify ownership via DB query (404 if not found)
+3. `vectorStore.delete({ filter: { paperId: id } })`
+4. `db.delete(paper).where(eq(paper.id, id))` — cascades to `reference` rows
+5. `vectorStore.end()`
+6. Return 204
+
+---
+
+### GET+POST `/api/auth/[...all]`
+
+Catch-all delegating to better-auth's `svelteKitHandler`. Handles all auth sub-routes:
+- `POST /api/auth/sign-in/email`
+- `POST /api/auth/sign-up/email`
+- `POST /api/auth/sign-out`
+- `GET /api/auth/get-session`
+- etc.
+
+---
+
+## Server Hook
+
+**`src/hooks.server.ts`**
+
+```ts
+export const handle = ({ event, resolve }) =>
+  svelteKitHandler({ auth, event, resolve });
+```
+
+Runs on every request. Validates auth cookies, injects session context.
+
+---
+
+## Responsive Layout
+
+**Desktop/Landscape:** Two-column flex (`28%` files, `72%` content)
+
+**Portrait Mobile:** Single-column toggle — show only the active panel
 
 ---
 
 ## Maintenance
 
-**Keep this file up to date.** Whenever you add a new route, modify the SPA shell layout, or change the app's state structure, update this file. If the change affects the high-level route architecture, update the root [CLAUDE.md](../../CLAUDE.md) as well.
+Update this file when adding routes, changing API contracts, or modifying the page state model.
