@@ -89,7 +89,19 @@ Custom Drizzle schema. Re-exports `auth.schema.ts`.
 | `paperId` | text FK → paper | cascade delete |
 | `text` | text | single reference string |
 
-Relations: `paperRelations` (one-to-many → reference), `referenceRelations` (many-to-one → paper)
+Relations: `paperRelations` (one-to-many → reference, one-to-many → job), `referenceRelations` (many-to-one → paper)
+
+`job`
+| Column | Type | Notes |
+|---|---|---|
+| `id` | text PK | `crypto.randomUUID()` |
+| `userId` | text FK → user | cascade delete |
+| `status` | text | default: 'pending'; values: pending, processing, done, failed |
+| `paperId` | text nullable FK → paper | set null on delete |
+| `error` | text nullable | error message if status is failed |
+| `createdAt` | timestamp | `defaultNow()` |
+
+Relations: `jobRelations` (many-to-one → user, many-to-one → paper)
 
 **Note:** The `documents` table (pgvector) is managed entirely by `PGVectorStore.initialize()` — not in Drizzle schema.
 

@@ -15,7 +15,8 @@ src/routes/
 │
 └── api/
     ├── auth/[...all]/+server.ts  ← GET/POST catch-all for better-auth
-    ├── upload/+server.ts         ← POST: PDF → summarize → vectorize
+    ├── upload/+server.ts         ← POST: submit PDF, return jobId (async)
+    ├── jobs/[id]/+server.ts      ← GET: poll job status
     ├── chat/+server.ts           ← POST: RAG agent with history
     └── papers/[id]/+server.ts    ← DELETE: paper + cascading cleanup
 
@@ -81,9 +82,9 @@ let mobileActivePanel = $state('files');        // 'files' | 'content'
 | Handler | What it does |
 |---|---|
 | `handleLogin(email, password)` | `authClient.signIn.email(...)`, sets loggedIn |
-| `handleUpload(file)` | POST `/api/upload`, appends to files, sets selectedFileId |
+| `handleUpload(file)` | POST `/api/upload`, receives jobId, polls `/api/jobs/:id`, appends paper when done |
 | `handleSelect(id)` | sets selectedFileId, switches mobile panel |
-| `handleDelete(id)` | DELETE `/api/papers/:id`, removes from files |
+| `handleDelete(id)` | DELETE `/api/papers/:id`, removes from files (checks response status) |
 | `handleSend(text)` | POST `/api/chat` with history, appends AI reply |
 | `handleBack()` | toggles mobile panel to files |
 
@@ -95,28 +96,41 @@ let mobileActivePanel = $state('files');        // 'files' | 'content'
 
 **Request:** `FormData { file: File }` (PDF only)
 
-**Response (200):**
+**Response (202 Accepted):**
 ```json
-{
-  "id": "uuid",
-  "name": "filename.pdf",
-  "summary": "...",
-  "keyFindings": ["...", "...", "..."],
-  "methodology": "...",
-  "limitations": "...",
-  "references": ["..."]
-}
+{ "jobId": "uuid" }
 ```
 
 **Pipeline:**
 1. Auth check (401 if no session)
 2. Validate PDF (400 if not PDF)
-3. `pdf-parse(buffer)` → extract text
-4. `ChatOpenAI.withStructuredOutput(SummarySchema)` → structured summary
-5. Insert `paper` row (userId FK)
-6. Insert `reference` rows (one per reference)
-7. Split text (1000 chars / 200 overlap) → embed → insert into `documents` with `{ paperId }` metadata
-8. Return paper JSON
+3. Create `job` row with `status: "pending"`, return `jobId` immediately (202)
+4. **Background task** (async, no await):
+   - Update job to `status: "processing"`
+   - `pdf-parse(buffer)` → extract text
+   - `ChatOpenAI.withStructuredOutput(SummarySchema)` → structured summary
+   - Insert `paper` row (userId FK)
+   - Insert `reference` rows (one per reference)
+   - Split text (1000 chars / 200 overlap) → embed → insert into `documents` with `{ paperId }` metadata
+   - Update job to `status: "done"` with `paperId`, or `status: "failed"` with error message
+
+---
+
+### GET `/api/jobs/[id]`
+
+**Response (200):**
+```json
+{
+  "status": "pending|processing|done|failed",
+  "paperId": "uuid|null",
+  "error": "error message|null"
+}
+```
+
+**Pipeline:**
+1. Auth check (401 if no session)
+2. Verify job belongs to user (404 if not found)
+3. Return job status, paperId (when done), and error message (if failed)
 
 ---
 

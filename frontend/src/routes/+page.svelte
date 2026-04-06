@@ -20,6 +20,9 @@
 	let selectedFile = $derived(files.find((f) => f.id === selectedFileId) ?? null);
 	let uploading = $state(false);
 
+	// Job tracking — map of placeeholder file ID -> { jobId, status, error? }
+	let jobsInProgress: Record<string, { jobId: string; status: string; error?: string }> = $state({});
+
 	// Content state
 	let mode: Mode = $state('summary');
 	let messages: ChatMessage[] = $state([]);
@@ -34,6 +37,64 @@
 		return null;
 	}
 
+	async function pollJobStatus(placeolderId: string, jobId: string) {
+		const maxRetries = 120; // 2 minutes with 1s interval
+		let retries = 0;
+
+		const poll = async () => {
+			try {
+				const res = await fetch(`/api/jobs/${jobId}`);
+				if (!res.ok) return;
+				const jobData = await res.json();
+
+				jobsInProgress[placeolderId] = { jobId, status: jobData.status, error: jobData.error };
+
+				if (jobData.status === 'done' && jobData.paperId) {
+					// Job complete — fetch the paper and replace placeholder
+					const paperRes = await fetch(`/api/papers/${jobData.paperId}`);
+					if (!paperRes.ok) {
+						jobsInProgress[placeolderId].error = 'Failed to fetch completed paper';
+						return;
+					}
+					const paperData = await paperRes.json();
+					files = files.map((f) =>
+						f.id === placeolderId
+							? {
+									id: paperData.id,
+									name: paperData.name,
+									summaryData: paperData.summaryData,
+								}
+							: f
+					);
+					// Update selectedFileId if this was the selected file
+					if (selectedFileId === placeolderId) {
+						selectedFileId = paperData.id;
+						mode = 'summary';
+					}
+					delete jobsInProgress[placeolderId];
+				} else if (jobData.status === 'failed') {
+					// Job failed
+					files = files.map((f) =>
+						f.id === placeolderId ? { ...f, name: `${f.name} (Failed)` } : f
+					);
+					delete jobsInProgress[placeolderId];
+				} else if (retries < maxRetries) {
+					// Still processing — poll again
+					retries++;
+					setTimeout(poll, 1000);
+				}
+			} catch (err) {
+				console.error('Poll error:', err);
+				if (retries < maxRetries) {
+					retries++;
+					setTimeout(poll, 1000);
+				}
+			}
+		};
+
+		poll();
+	}
+
 	async function handleUpload(file: File) {
 		uploading = true;
 		const formData = new FormData();
@@ -41,22 +102,25 @@
 		const res = await fetch('/api/upload', { method: 'POST', body: formData });
 		uploading = false;
 		if (!res.ok) return;
+
 		const data = await res.json();
+		const { jobId } = data;
+
+		// Create placeholder paper
+		const placeolderId = crypto.randomUUID();
 		files = [
 			...files,
 			{
-				id: data.id,
-				name: data.name,
-				summaryData: {
-					summary: data.summary,
-					keyFindings: data.keyFindings,
-					methodology: data.methodology,
-					limitations: data.limitations,
-					references: data.references,
-				},
+				id: placeolderId,
+				name: file.name,
+				summaryData: undefined,
 			},
 		];
-		selectedFileId = data.id;
+		selectedFileId = placeolderId;
+
+		// Track job and start polling
+		jobsInProgress[placeolderId] = { jobId, status: 'pending' };
+		pollJobStatus(placeolderId, jobId);
 	}
 
 	function handleSelect(id: string) {
