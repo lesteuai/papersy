@@ -147,6 +147,7 @@
 	}
 
 	async function handleSend(text: string) {
+		mode = 'chat';
 		messages = [...messages, { role: 'user', text }];
 		const res = await fetch('/api/chat', {
 			method: 'POST',
