@@ -14,13 +14,13 @@ export const POST: RequestHandler = async ({ request }) => {
 	};
 	if (!paperId) error(400, 'paperId required');
 
-	const { agent, vectorStore, ragSystemPrompt } = await createRagAgent(paperId);
+	const { agent, vectorStore } = await createRagAgent(paperId);
 
 	const history = messages.map((m) =>
 		m.role === 'user' ? new HumanMessage(m.text) : new AIMessage(m.text)
 	);
 
-	const result = await agent.invoke({ messages: [ragSystemPrompt, ...history] });
+	const result = await agent.invoke({ messages: history });
 
 	await vectorStore.end();
 
