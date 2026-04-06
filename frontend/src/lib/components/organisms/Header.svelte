@@ -2,6 +2,12 @@
 	import Logo from '$lib/components/atoms/Logo.svelte';
 	import Button from '$lib/components/atoms/Button.svelte';
 	import { loggedIn } from '$lib/stores/auth';
+	import { authClient } from '$lib/auth-client';
+
+	async function handleLogout() {
+		await authClient.signOut();
+		loggedIn.set(false);
+	}
 </script>
 
 <header>
@@ -11,7 +17,7 @@
 		</a>
 
 		{#if $loggedIn}
-			<Button style="clear" onclick={() => loggedIn.set(false)}>Logout</Button>
+			<Button style="clear" onclick={handleLogout}>Logout</Button>
 		{/if}
 	</nav>
 </header>

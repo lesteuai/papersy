@@ -1,16 +1,20 @@
 <script lang="ts">
 	import Button from '$lib/components/atoms/Button.svelte';
 
-	let { onLogin }: { onLogin: () => void } = $props();
+	let { onLogin }: { onLogin: (email: string, password: string) => Promise<string | null> } = $props();
 
-	let username = $state('');
+	let email = $state('');
 	let password = $state('');
+	let error = $state<string | null>(null);
+	let loading = $state(false);
 
-	function handleSubmit(e: SubmitEvent) {
+	async function handleSubmit(e: SubmitEvent) {
 		e.preventDefault();
-		if (username && password) {
-			onLogin();
-		}
+		if (!email || !password) return;
+		loading = true;
+		error = null;
+		error = await onLogin(email, password);
+		loading = false;
 	}
 </script>
 
@@ -19,13 +23,13 @@
 		<h1>Papersy</h1>
 		<form onsubmit={handleSubmit}>
 			<div class="field">
-				<label for="username">Username</label>
+				<label for="email">Email</label>
 				<input
-					id="username"
-					type="text"
-					bind:value={username}
-					placeholder="Enter your username"
-					autocomplete="username"
+					id="email"
+					type="email"
+					bind:value={email}
+					placeholder="Enter your email"
+					autocomplete="email"
 				/>
 			</div>
 			<div class="field">
@@ -38,8 +42,11 @@
 					autocomplete="current-password"
 				/>
 			</div>
+			{#if error}
+				<p class="error">{error}</p>
+			{/if}
 			<div class="submit-row">
-				<Button type="submit">Login</Button>
+				<Button type="submit" disabled={loading}>{loading ? 'Logging in...' : 'Login'}</Button>
 			</div>
 		</form>
 	</div>
@@ -102,6 +109,12 @@
 				border-color: var(--color--primary);
 			}
 		}
+	}
+
+	.error {
+		font-size: 0.875rem;
+		color: #e53e3e;
+		margin: 0;
 	}
 
 	.submit-row {

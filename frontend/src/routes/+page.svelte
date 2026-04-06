@@ -1,14 +1,24 @@
 <script lang="ts">
 	import { loggedIn } from '$lib/stores/auth';
+	import { authClient } from '$lib/auth-client';
+	import { onMount } from 'svelte';
 	import LoginCard from '$lib/components/dedicated/app/LoginCard.svelte';
 	import FilePanel from '$lib/components/dedicated/app/FilePanel.svelte';
 	import ContentPanel from '$lib/components/dedicated/app/ContentPanel.svelte';
 	import type { PapersyFile, ChatMessage, Mode } from '$lib/components/dedicated/app/types';
 
-	// File state
-	let files: PapersyFile[] = $state([]);
+	let { data } = $props();
+
+	// Sync loggedIn store from server session on mount
+	onMount(() => {
+		if (data.loggedIn) loggedIn.set(true);
+	});
+
+	// File state — seed from server on load
+	let files: PapersyFile[] = $state(data.papers ?? []);
 	let selectedFileId: string | null = $state(null);
 	let selectedFile = $derived(files.find((f) => f.id === selectedFileId) ?? null);
+	let uploading = $state(false);
 
 	// Content state
 	let mode: Mode = $state('summary');
@@ -17,9 +27,36 @@
 	// Mobile panel visibility — only relevant in portrait
 	let mobileActivePanel: 'files' | 'content' = $state('files');
 
-	function handleUpload(file: File) {
-		const id = crypto.randomUUID();
-		files = [...files, { id, name: file.name }];
+	async function handleLogin(email: string, password: string): Promise<string | null> {
+		const { error } = await authClient.signIn.email({ email, password });
+		if (error) return error.message ?? 'Login failed';
+		loggedIn.set(true);
+		return null;
+	}
+
+	async function handleUpload(file: File) {
+		uploading = true;
+		const formData = new FormData();
+		formData.append('file', file);
+		const res = await fetch('/api/upload', { method: 'POST', body: formData });
+		uploading = false;
+		if (!res.ok) return;
+		const data = await res.json();
+		files = [
+			...files,
+			{
+				id: data.id,
+				name: data.name,
+				summaryData: {
+					summary: data.summary,
+					keyFindings: data.keyFindings,
+					methodology: data.methodology,
+					limitations: data.limitations,
+					references: data.references,
+				},
+			},
+		];
+		selectedFileId = data.id;
 	}
 
 	function handleSelect(id: string) {
@@ -27,7 +64,8 @@
 		mobileActivePanel = 'content';
 	}
 
-	function handleDelete(id: string) {
+	async function handleDelete(id: string) {
+		await fetch(`/api/papers/${id}`, { method: 'DELETE' });
 		files = files.filter((f) => f.id !== id);
 		if (selectedFileId === id) {
 			selectedFileId = null;
@@ -43,23 +81,31 @@
 		}
 	}
 
-	function handleSend(text: string) {
+	async function handleSend(text: string) {
 		messages = [...messages, { role: 'user', text }];
-		// AI response placeholder — replace with real API call
-		setTimeout(() => {
-			messages = [...messages, { role: 'ai', text: 'This feature will connect to the backend soon.' }];
-		}, 500);
+		const res = await fetch('/api/chat', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ paperId: selectedFileId, messages }),
+		});
+		if (!res.ok) {
+			messages = [...messages, { role: 'ai', text: 'Error: failed to get a response.' }];
+			return;
+		}
+		const data = await res.json();
+		messages = [...messages, { role: 'ai', text: data.text }];
 	}
 </script>
 
 {#if !$loggedIn}
-	<LoginCard onLogin={() => loggedIn.set(true)} />
+	<LoginCard onLogin={handleLogin} />
 {:else}
 	<div class="app-shell">
 		<div class="file-panel-wrap" class:hidden={mobileActivePanel === 'content'}>
 			<FilePanel
 				{files}
 				{selectedFileId}
+				{uploading}
 				onUpload={handleUpload}
 				onSelect={handleSelect}
 				onDelete={handleDelete}
@@ -70,7 +116,7 @@
 				<ContentPanel
 					{mode}
 					{messages}
-					summaryData={null}
+					summaryData={selectedFile?.summaryData ?? null}
 					onBack={handleBack}
 					onModeChange={(m) => (mode = m)}
 					onSend={handleSend}
