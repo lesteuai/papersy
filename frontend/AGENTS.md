@@ -10,11 +10,18 @@
 
 ## Architecture
 
-Full-stack SSR application. Pages render server-side. Auth is session-based (PostgreSQL via better-auth). LLM operations run server-side via LangChain.
+Full-stack SSR application. Pages render server-side. Auth is session-based (PostgreSQL via better-auth) with email verification and password reset flows. LLM operations run server-side via LangChain. PDF uploads are processed asynchronously with job tracking.
+
+**Key features:**
+- **Async job processing** — PDF uploads return `jobId` immediately; background task processes PDF/summarize/vectorize with job status polling
+- **Email verification & password reset** — better-auth plugins with UI pages at `/verify-email`, `/forgot-password`, `/reset-password`
+- **Sign-up limit** — max 100 users enforced via auth hook
+- **Chat with ellipsis indicator** — shows "..." while waiting for AI response
+- **Relational queries** — Drizzle `db.query` API prevents N+1 problems
 
 **Key directories:**
-- `src/routes/` — pages + API routes (`api/upload`, `api/chat`, `api/papers/[id]`, `api/auth/[...all]`)
-- `src/lib/server/` — server-only: `auth.ts`, `db/`, `llm.ts`
+- `src/routes/` — pages + API routes (`api/upload`, `api/jobs/[id]`, `api/chat`, `api/papers/[id]`, `api/auth/[...all]`)
+- `src/lib/server/` — server-only: `auth.ts`, `db/` (with `job` table), `llm.ts`
 - `src/lib/components/dedicated/app/` — Papersy UI components
 - `src/hooks.server.ts` — per-request auth injection
 
