@@ -65,7 +65,8 @@
 	}
 
 	async function handleDelete(id: string) {
-		await fetch(`/api/papers/${id}`, { method: 'DELETE' });
+		const res = await fetch(`/api/papers/${id}`, { method: 'DELETE' });
+		if (!res.ok) return;
 		files = files.filter((f) => f.id !== id);
 		if (selectedFileId === id) {
 			selectedFileId = null;
