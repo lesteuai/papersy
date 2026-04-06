@@ -12,13 +12,16 @@ src/routes/
 ├── +layout.svelte                ← Header + outlet, global styles
 ├── +page.server.ts               ← load(): fetch user's papers from DB
 ├── +page.svelte                  ← App shell: Login page or File+Content panels
+├── verify-email/+page.svelte     ← Email verification page (token-based)
+├── forgot-password/+page.svelte  ← Forgot password form (send reset email)
+├── reset-password/+page.svelte   ← Reset password form (verify token, set new password)
 │
 └── api/
     ├── auth/[...all]/+server.ts  ← GET/POST catch-all for better-auth
     ├── upload/+server.ts         ← POST: submit PDF, return jobId (async)
     ├── jobs/[id]/+server.ts      ← GET: poll job status
     ├── chat/+server.ts           ← POST: RAG agent with history
-    └── papers/[id]/+server.ts    ← DELETE: paper + cascading cleanup
+    └── papers/[id]/+server.ts    ← GET: fetch paper; DELETE: paper + cascading cleanup
 
 (src/hooks.server.ts at project root handles auth per-request)
 ```
@@ -151,6 +154,31 @@ let mobileActivePanel = $state('files');        // 'files' | 'content'
 5. `agent.invoke({ messages: [systemPrompt, ...history] })`
 6. `vectorStore.end()`
 7. Return last message text
+
+---
+
+### GET `/api/papers/[id]`
+
+**Response (200):**
+```json
+{
+  "id": "uuid",
+  "name": "filename.pdf",
+  "summaryData": {
+    "summary": "...",
+    "keyFindings": ["...", "..."],
+    "methodology": "...",
+    "limitations": "...",
+    "references": ["..."]
+  }
+}
+```
+
+**Pipeline:**
+1. Auth check (401)
+2. Verify ownership via relational query (404 if not found)
+3. Fetch paper with references using `db.query.paper.findFirst()`
+4. Return paper JSON
 
 ---
 

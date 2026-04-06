@@ -24,8 +24,11 @@ Exports `auth` — the better-auth instance.
 
 **Config:**
 - Database: Drizzle adapter with PostgreSQL
-- Provider: email/password
-- Plugin: `sveltekitCookies(getRequestEvent)` — handles cookie injection per request
+- Provider: email/password with sign-up limit (100 users max via `beforeSignUp` hook)
+- Plugins:
+  - `emailVerification` — email verification flow with sendVerificationEmail callback
+  - `forgotPassword` — forgot password + reset password flow
+  - `sveltekitCookies(getRequestEvent)` — handles cookie injection per request
 
 **Usage in API routes:**
 ```ts
@@ -35,6 +38,13 @@ const session = await auth.api.getSession({ headers: request.headers });
 if (!session) error(401, 'Unauthorized');
 // session.user.id, session.user.email
 ```
+
+**Sign-up Limit:**
+- Max 100 users enforced via `beforeSignUp` hook
+- Attempting sign-up when limit is reached returns error code `USER_LIMIT_REACHED`
+
+**Email Sending:**
+- `sendVerificationEmailFn` currently logs to console (TODO: implement actual email service)
 
 ---
 
