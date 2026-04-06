@@ -43,7 +43,7 @@ Returns `{ papers: PapersyFile[], loggedIn: boolean }` to `+page.svelte`.
 
 - Checks `auth.api.getSession({ headers: request.headers })`
 - If no session: `{ papers: [], loggedIn: false }`
-- If session: queries `paper` table filtered by `userId`, fetches `reference` rows for each, returns as `PapersyFile[]` with populated `summaryData`
+- If session: queries `paper` table with relational API (`db.query.paper.findMany({ with: { references: true } })`) to fetch all papers and their references in one query, returns as `PapersyFile[]` with populated `summaryData`
 
 **`+page.svelte`** — App shell
 
@@ -146,7 +146,7 @@ let mobileActivePanel = $state('files');        // 'files' | 'content'
 
 **Pipeline:**
 1. Auth check (401)
-2. Verify ownership via DB query (404 if not found)
+2. Verify ownership via relational query (`db.query.paper.findFirst()`) (404 if not found)
 3. `vectorStore.delete({ filter: { paperId: id } })`
 4. `db.delete(paper).where(eq(paper.id, id))` — cascades to `reference` rows
 5. `vectorStore.end()`

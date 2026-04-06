@@ -2,7 +2,7 @@ import { error } from '@sveltejs/kit';
 import { auth } from '$lib/server/auth';
 import { db } from '$lib/server/db';
 import { paper } from '$lib/server/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { getVectorStore } from '$lib/server/llm';
 import type { RequestHandler } from '@sveltejs/kit';
 
@@ -13,10 +13,9 @@ export const DELETE: RequestHandler = async ({ request, params }) => {
 	const { id } = params;
 
 	// Verify the paper belongs to this user
-	const [row] = await db
-		.select()
-		.from(paper)
-		.where(and(eq(paper.id, id), eq(paper.userId, session.user.id)));
+	const row = await db.query.paper.findFirst({
+		where: and(eq(paper.id, id), eq(paper.userId, session.user.id)),
+	});
 	if (!row) error(404, 'Not found');
 
 	// Delete vectors first

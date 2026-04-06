@@ -9,32 +9,24 @@ export const load: PageServerLoad = async ({ request }) => {
 	const session = await auth.api.getSession({ headers: request.headers });
 	if (!session) return { papers: [], loggedIn: false };
 
-	const rows = await db
-		.select()
-		.from(paper)
-		.where(eq(paper.userId, session.user.id));
+	const rows = await db.query.paper.findMany({
+		where: eq(paper.userId, session.user.id),
+		with: { references: true },
+	});
 
-	const papers: PapersyFile[] = await Promise.all(
-		rows.map(async (row) => {
-			const refs = await db
-				.select()
-				.from(reference)
-				.where(eq(reference.paperId, row.id));
-			return {
-				id: row.id,
-				name: row.name,
-				summaryData: row.summary
-					? {
-							summary: row.summary,
-							keyFindings: JSON.parse(row.keyFindings ?? '[]'),
-							methodology: row.methodology ?? '',
-							limitations: row.limitations ?? '',
-							references: refs.map((r) => r.text),
-						}
-					: undefined,
-			};
-		})
-	);
+	const papers: PapersyFile[] = rows.map((row) => ({
+		id: row.id,
+		name: row.name,
+		summaryData: row.summary
+			? {
+					summary: row.summary,
+					keyFindings: JSON.parse(row.keyFindings ?? '[]'),
+					methodology: row.methodology ?? '',
+					limitations: row.limitations ?? '',
+					references: row.references.map((r) => r.text),
+				}
+			: undefined,
+	}));
 
 	return { papers, loggedIn: true };
 };

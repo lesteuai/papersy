@@ -47,10 +47,19 @@ Connection string from `DATABASE_URL` env var.
 **Usage:**
 ```ts
 import { db } from '$lib/server/db';
-import { paper, reference } from '$lib/server/db/schema';
+import { paper } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 
-const rows = await db.select().from(paper).where(eq(paper.userId, userId));
+// Prefer relational queries to avoid N+1 problems
+const rows = await db.query.paper.findMany({
+  where: eq(paper.userId, userId),
+  with: { references: true }  // Load related references in one query
+});
+
+// For simple single-row lookups
+const row = await db.query.paper.findFirst({
+  where: eq(paper.id, id)
+});
 ```
 
 ---
