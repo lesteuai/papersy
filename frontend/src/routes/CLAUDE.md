@@ -163,6 +163,8 @@ Catch-all delegating to better-auth's `svelteKitHandler`. Handles all auth sub-r
 - `GET /api/auth/get-session`
 - etc.
 
+Passes `building` flag from `$app/environment` to skip auth handling during build time.
+
 ---
 
 ## Server Hook
@@ -171,10 +173,10 @@ Catch-all delegating to better-auth's `svelteKitHandler`. Handles all auth sub-r
 
 ```ts
 export const handle = ({ event, resolve }) =>
-  svelteKitHandler({ auth, event, resolve });
+  svelteKitHandler({ auth, event, resolve, building });
 ```
 
-Runs on every request. Validates auth cookies, injects session context.
+Runs on every request (except during build time). Validates auth cookies, injects session context. Passes `building` flag to skip auth during build.
 
 ---
 
