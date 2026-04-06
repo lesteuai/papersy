@@ -23,13 +23,37 @@ export const reference = pgTable('reference', {
 	text: text('text').notNull()
 });
 
+export const job = pgTable('job', {
+	id: text('id').primaryKey(),
+	userId: text('user_id')
+		.notNull()
+		.references(() => user.id, { onDelete: 'cascade' }),
+	status: text('status').notNull().default('pending'), // pending | processing | done | failed
+	paperId: text('paper_id')
+		.references(() => paper.id, { onDelete: 'set null' }),
+	error: text('error'),
+	createdAt: timestamp('created_at').defaultNow()
+});
+
 export const paperRelations = relations(paper, ({ many }) => ({
-	references: many(reference)
+	references: many(reference),
+	jobs: many(job)
 }));
 
 export const referenceRelations = relations(reference, ({ one }) => ({
 	paper: one(paper, {
 		fields: [reference.paperId],
+		references: [paper.id]
+	})
+}));
+
+export const jobRelations = relations(job, ({ one }) => ({
+	user: one(user, {
+		fields: [job.userId],
+		references: [user.id]
+	}),
+	paper: one(paper, {
+		fields: [job.paperId],
 		references: [paper.id]
 	})
 }));
