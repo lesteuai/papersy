@@ -7,7 +7,7 @@ import { getVectorStore, getLlm, SummarySchema } from '$lib/server/llm';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
 import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters';
 import { Document } from '@langchain/core/documents';
-import pdf from 'pdf-parse';
+import { PDFParse } from 'pdf-parse';
 import fs from 'fs/promises';
 import path from 'path';
 import type { RequestHandler } from '@sveltejs/kit';
@@ -18,8 +18,10 @@ async function processUpload(jobId: string, userId: string, file: File, fileBuff
 	try {
 		// Extract text from PDF
 		const buffer = Buffer.from(fileBuffer);
-		const pdfData = await pdf(buffer);
-		const paperText = pdfData.text;
+		const parser = new PDFParse({ data: buffer });
+		const textResult = await parser.getText();
+		const paperText = textResult.text;
+		await parser.destroy();
 
 		// Summarize
 		const systemPrompt = await fs.readFile(PROMPT_PATH, 'utf-8');
