@@ -1,4 +1,4 @@
-import { error } from '@sveltejs/kit';
+import { json, error } from '@sveltejs/kit';
 import { auth } from '$lib/server/auth';
 import { db } from '$lib/server/db';
 import { paper } from '$lib/server/db/schema';
@@ -19,22 +19,19 @@ export const GET: RequestHandler = async ({ request, params }) => {
 	});
 	if (!row) error(404, 'Not found');
 
-	return new Response(
-		JSON.stringify({
-			id: row.id,
-			name: row.name,
-			summaryData: row.summary
-				? {
-						summary: row.summary,
-						keyFindings: JSON.parse(row.keyFindings ?? '[]'),
-						methodology: row.methodology ?? '',
-						limitations: row.limitations ?? '',
-						references: row.references.map((r) => r.text),
-					}
-				: undefined,
-		}),
-		{ headers: { 'Content-Type': 'application/json' } }
-	);
+	return json({
+		id: row.id,
+		name: row.name,
+		summaryData: row.summary
+			? {
+					summary: row.summary,
+					keyFindings: JSON.parse(row.keyFindings ?? '[]'),
+					methodology: row.methodology ?? '',
+					limitations: row.limitations ?? '',
+					references: row.references.map((r) => r.text),
+				}
+			: undefined,
+	});
 };
 
 export const DELETE: RequestHandler = async ({ request, params }) => {
