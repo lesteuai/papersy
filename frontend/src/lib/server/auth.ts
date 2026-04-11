@@ -2,6 +2,7 @@ import { betterAuth } from 'better-auth/minimal';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { sveltekitCookies } from 'better-auth/svelte-kit';
 import { emailVerification, forgotPassword } from 'better-auth/plugins';
+import { count } from 'drizzle-orm';
 import { env } from '$env/dynamic/private';
 import { getRequestEvent } from '$app/server';
 import { db } from '$lib/server/db';
@@ -22,8 +23,8 @@ export const auth = betterAuth({
 	emailAndPassword: {
 		enabled: true,
 		async beforeSignUp(user) {
-			const count = await db.select({ count: db.count() }).from(userTable);
-			if (count[0].count >= MAX_USERS) {
+			const result = await db.select({ count: count() }).from(userTable);
+			if (result[0].count >= MAX_USERS) {
 				return {
 					error: {
 						code: 'USER_LIMIT_REACHED',
