@@ -1,12 +1,11 @@
 import { json, error } from '@sveltejs/kit';
-import { auth } from '$lib/server/auth';
+import { requireSession } from '$lib/server/auth';
 import { createRagAgent } from '$lib/server/llm';
 import { HumanMessage, AIMessage } from '@langchain/core/messages';
 import type { RequestHandler } from '@sveltejs/kit';
 
 export const POST: RequestHandler = async ({ request }) => {
-	const session = await auth.api.getSession({ headers: request.headers });
-	if (!session) error(401, 'Unauthorized');
+	const session = await requireSession(request.headers);
 
 	const { paperId, messages } = await request.json() as {
 		paperId: string;

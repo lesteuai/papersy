@@ -3,6 +3,7 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { sveltekitCookies } from 'better-auth/svelte-kit';
 import { emailVerification, forgotPassword } from 'better-auth/plugins';
 import { count } from 'drizzle-orm';
+import { error } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 import { getRequestEvent } from '$app/server';
 import { db } from '$lib/server/db';
@@ -40,3 +41,9 @@ export const auth = betterAuth({
 		sveltekitCookies(getRequestEvent) // make sure this is the last plugin in the array
 	]
 });
+
+export async function requireSession(headers: Headers) {
+	const session = await auth.api.getSession({ headers });
+	if (!session) error(401, 'Unauthorized');
+	return session;
+}

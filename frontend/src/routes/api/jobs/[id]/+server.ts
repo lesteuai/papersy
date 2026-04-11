@@ -1,13 +1,12 @@
 import { json, error } from '@sveltejs/kit';
-import { auth } from '$lib/server/auth';
+import { requireSession } from '$lib/server/auth';
 import { db } from '$lib/server/db';
 import { job } from '$lib/server/db/schema';
 import { eq, and } from 'drizzle-orm';
 import type { RequestHandler } from '@sveltejs/kit';
 
 export const GET: RequestHandler = async ({ request, params }) => {
-	const session = await auth.api.getSession({ headers: request.headers });
-	if (!session) error(401, 'Unauthorized');
+	const session = await requireSession(request.headers);
 
 	const { id } = params;
 

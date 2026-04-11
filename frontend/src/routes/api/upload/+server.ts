@@ -1,5 +1,5 @@
 import { json, error } from '@sveltejs/kit';
-import { auth } from '$lib/server/auth';
+import { requireSession } from '$lib/server/auth';
 import { db } from '$lib/server/db';
 import { paper, reference, job } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
@@ -87,8 +87,7 @@ async function processUpload(jobId: string, userId: string, file: File, fileBuff
 }
 
 export const POST: RequestHandler = async ({ request }) => {
-	const session = await auth.api.getSession({ headers: request.headers });
-	if (!session) error(401, 'Unauthorized');
+	const session = await requireSession(request.headers);
 
 	const formData = await request.formData();
 	const file = formData.get('file') as File | null;
