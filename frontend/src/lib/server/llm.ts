@@ -46,10 +46,9 @@ export function getEmbeddings() {
 export function getLlm() {
 	return new ChatOpenAI({
 		model: 'local',
-		maxTokens: 6000,
 		configuration: {
 			baseURL: env.CHAT_MODEL_URL,
-			apiKey: 'local',
+			apiKey: env.CHAT_MODEL_API_KEY,
 		},
 	});
 }
@@ -58,7 +57,8 @@ export async function getVectorStore() {
 	return PGVectorStore.initialize(getEmbeddings(), vectorStoreConfig);
 }
 
-const ragSystemPrompt =
+// Should move system prompt to a separate file to import
+const systemPrompt =
 	'You MUST use the retrieve tool to answer every query. ' +
 	'Never answer from your own knowledge — only use what the tool returns. ' +
 	'If the tool returns no results, respond only with: "I don\'t know." ' +
@@ -84,7 +84,7 @@ export async function createRagAgent(paperId: string) {
 		}
 	);
 
-	const model = getLlm().withSystemPrompt(ragSystemPrompt);
-	const agent = createAgent({ model, tools: [retrieve] });
+	const model = getLlm();
+	const agent = createAgent({ model, tools: [retrieve], systemPrompt });
 	return { agent, vectorStore };
 }

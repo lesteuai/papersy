@@ -1,9 +1,9 @@
-+ +page.server.ts and api/papers/[id]/+server.ts: change db.select() to equivalent db.query() to prevent N+1 query (example in +page.server.ts)
-+ missing building property in api/auth/[...all]/+server.ts and hooks.server.ts
-+ handleDelete() in +page.svelte: add check if (!res.ok) to check whether it is successful
-+ llm.ts: add system prompt directly to agent, not separate
-+ api/upload/+server.ts: process the file as a background task, not direct run on api. There should be a new table to keep track of jobs, a visual indicator that it is processing, when it's done => show up result in summary tab.
-+ chat box only switch to chat mode once message is sent (enter pressed or clicked send).
-+ need indicator that means waiting for ai to respond like showing ellipsis (...)
-+ add signing up, email verify, reset pass.
-+ limit to 100 signups.
+- const session = await auth.api.getSession({ headers: request.headers });
+	if (!session) error(401, 'Unauthorized');
+=> need a unified function to call this
+- return json() should be the norm for API, no more new Response() if we return JSON. not sure if api/auth/[...all] agree.
+- import pdf from 'pdf-parse'; pdf not found in /upload
+- limit to 100 signups: lib/server/auth.ts: db.count(), { emailVerification, forgotPassword } from 'better-auth/plugins'; not found
+- reset-password, forgot-password:
++ import type { PageServerLoad } from './$types'; find it
++ onsubmit|preventDefault={handleSubmit}, what is this?

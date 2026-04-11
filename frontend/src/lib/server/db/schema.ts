@@ -35,6 +35,7 @@ export const job = pgTable('job', {
 	createdAt: timestamp('created_at').defaultNow()
 });
 
+// Not sure if 1 paper has many jobs. For now, 1 job is upload + process
 export const paperRelations = relations(paper, ({ many }) => ({
 	references: many(reference),
 	jobs: many(job)
