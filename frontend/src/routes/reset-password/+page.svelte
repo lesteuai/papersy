@@ -53,7 +53,7 @@
 				<Button href="/">Sign In</Button>
 			</div>
 		{:else}
-			<form onsubmit|preventDefault={handleSubmit}>
+			<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
 				<input
 					type="password"
 					placeholder="New Password"

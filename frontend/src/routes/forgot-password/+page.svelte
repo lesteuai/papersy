@@ -45,7 +45,7 @@
 		{#if message}
 			<div class="success">{message}</div>
 		{:else}
-			<form onsubmit|preventDefault={handleSubmit}>
+			<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
 				<input type="email" placeholder="Email" bind:value={email} required disabled={submitting} />
 				<Button type="submit" disabled={submitting || !email}>{submitting ? 'Sending...' : 'Send Reset Link'}</Button>
 			</form>
