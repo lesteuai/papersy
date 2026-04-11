@@ -20,7 +20,7 @@ src/lib/server/
 
 ## auth.ts
 
-Exports `auth` — the better-auth instance.
+Exports `auth` — the better-auth instance, and `requireSession` — a shared auth guard.
 
 **Config:**
 - Database: Drizzle adapter with PostgreSQL
@@ -32,11 +32,11 @@ Exports `auth` — the better-auth instance.
 
 **Usage in API routes:**
 ```ts
-import { auth } from '$lib/server/auth';
+import { requireSession } from '$lib/server/auth';
 
-const session = await auth.api.getSession({ headers: request.headers });
-if (!session) error(401, 'Unauthorized');
+const session = await requireSession(request.headers);
 // session.user.id, session.user.email
+// throws 401 automatically if no session
 ```
 
 **Sign-up Limit:**

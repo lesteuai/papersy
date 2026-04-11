@@ -110,7 +110,7 @@ let mobileActivePanel = $state('files');        // 'files' | 'content'
 3. Create `job` row with `status: "pending"`, return `jobId` immediately (202)
 4. **Background task** (async, no await):
    - Update job to `status: "processing"`
-   - `pdf-parse(buffer)` → extract text
+   - `new PDFParse({ data: buffer }).getText()` → extract text (pdf-parse v2.x class API)
    - `ChatOpenAI.withStructuredOutput(SummarySchema)` → structured summary
    - Insert `paper` row (userId FK)
    - Insert `reference` rows (one per reference)
