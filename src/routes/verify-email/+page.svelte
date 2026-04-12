@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { getAuthClient } from '$lib/auth-client';
 	import Button from '$lib/components/atoms/Button.svelte';
 
 	let { data } = $props();
@@ -10,13 +11,8 @@
 
 	onMount(async () => {
 		try {
-			const res = await fetch('/api/auth/verify-email', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ token: data.token }),
-			});
-			if (!res.ok) {
-				const err = await res.json();
+			const { data: result, error: err } = await getAuthClient()!.verifyEmail({ query: { token: data.token } });
+			if (err) {
 				error = err.message ?? 'Verification failed';
 			} else {
 				success = true;

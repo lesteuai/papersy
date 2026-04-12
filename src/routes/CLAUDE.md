@@ -53,10 +53,11 @@ Returns `{ papers: PapersyFile[], loggedIn: boolean }` to `+page.svelte`.
 
 **Logical states:**
 
-1. **Login** — when `!$loggedIn`
-   - Centered `<LoginCard />` with email/password form
-   - `onLogin: (email, password) => Promise<string | null>`
-   - Calls `authClient.signIn.email({ email, password })`, sets `loggedIn.set(true)` on success
+1. **Auth** — when `!$loggedIn`
+   - Centered `<LoginCard />` with toggle between sign in and sign up
+   - Sign In: `onLogin: (email, password) => Promise<string | null>` — calls `getAuthClient()!.signIn.email(...)`, sets `loggedIn.set(true)` on success
+   - Sign Up: `onSignUp: (name, email, password) => Promise<string | null>` — calls `getAuthClient()!.signUp.email(...)`, user receives verification email (email verification required)
+   - Links to `/forgot-password` for password reset
 
 2. **File Manager + Summary** — `$loggedIn`, file selected
    - Left: `<FilePanel />` — Upload, file list, delete menus
@@ -84,7 +85,7 @@ let mobileActivePanel = $state('files');        // 'files' | 'content'
 
 | Handler | What it does |
 |---|---|
-| `handleLogin(email, password)` | `authClient.signIn.email(...)`, sets loggedIn |
+| `handleLogin(email, password)` | `getAuthClient()!.signIn.email(...)`, sets loggedIn |
 | `handleUpload(file)` | POST `/api/upload`, receives jobId, polls `/api/jobs/:id`, appends paper when done |
 | `handleSelect(id)` | sets selectedFileId, switches mobile panel |
 | `handleDelete(id)` | DELETE `/api/papers/:id`, removes from files (checks response status) |

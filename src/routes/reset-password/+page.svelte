@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { getAuthClient } from '$lib/auth-client';
 	import Button from '$lib/components/atoms/Button.svelte';
 
 	let { data } = $props();
@@ -19,14 +20,12 @@
 		error = null;
 
 		try {
-			const res = await fetch('/api/auth/reset-password', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ token: data.token, newPassword: password }),
+			const { data: result, error: err } = await getAuthClient()!.resetPassword({
+				newPassword: password,
+				token: data.token,
 			});
 
-			if (!res.ok) {
-				const err = await res.json();
+			if (err) {
 				error = err.message ?? 'Failed to reset password';
 			} else {
 				success = true;

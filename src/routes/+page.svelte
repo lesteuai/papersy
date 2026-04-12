@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { loggedIn } from '$lib/stores/auth';
-	import { authClient } from '$lib/auth-client';
+	import { getAuthClient } from '$lib/auth-client';
 	import { onMount } from 'svelte';
 	import LoginCard from '$lib/components/dedicated/app/LoginCard.svelte';
 	import FilePanel from '$lib/components/dedicated/app/FilePanel.svelte';
@@ -31,9 +31,16 @@
 	let mobileActivePanel: 'files' | 'content' = $state('files');
 
 	async function handleLogin(email: string, password: string): Promise<string | null> {
-		const { error } = await authClient.signIn.email({ email, password });
+		const { error } = await getAuthClient()!.signIn.email({ email, password });
 		if (error) return error.message ?? 'Login failed';
 		loggedIn.set(true);
+		return null;
+	}
+
+	async function handleSignUp(name: string, email: string, password: string): Promise<string | null> {
+		const { error } = await getAuthClient()!.signUp.email({ name, email, password });
+		if (error) return error.message ?? 'Sign up failed';
+		// Email verification required — user will see verification page or message
 		return null;
 	}
 
@@ -166,7 +173,7 @@
 </script>
 
 {#if !$loggedIn}
-	<LoginCard onLogin={handleLogin} />
+	<LoginCard onLogin={handleLogin} onSignUp={handleSignUp} />
 {:else}
 	<div class="app-shell">
 		<div class="file-panel-wrap" class:hidden={mobileActivePanel === 'content'}>

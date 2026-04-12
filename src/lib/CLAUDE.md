@@ -41,7 +41,7 @@ Shared, reusable library code exported globally via the `$lib` import alias. Org
 
 ### Authentication
 - **better-auth** — email/password auth with PostgreSQL session storage
-- **Shared client** — `auth-client.ts` exports `authClient = createAuthClient({ baseURL: '/api/auth' })`
+- **Shared client** — `auth-client.ts` exports `getAuthClient()` function (lazy browser-only initialization using `browser` from `$app/environment`, follows SvelteKit best practices)
 - **Server validation** — every API route checks `auth.api.getSession({ headers })` directly
 
 ### Database
@@ -81,7 +81,7 @@ import { theme } from '$lib/stores/theme'
 import type { PapersyFile, SummaryData, ChatMessage } from '$lib/components/dedicated/app/types'
 
 // Auth client (browser-side)
-import { authClient } from '$lib/auth-client'
+import { getAuthClient } from '$lib/auth-client'
 
 // Server utilities (server-only: +server.ts, +page.server.ts, hooks.server.ts)
 import { db } from '$lib/server/db'

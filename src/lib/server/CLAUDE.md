@@ -25,9 +25,12 @@ Exports `auth` — the better-auth instance, and `requireSession` — a shared a
 **Config:**
 - Database: Drizzle adapter with PostgreSQL
 - Provider: email/password with sign-up limit (100 users max via `beforeSignUp` hook)
+- Features:
+  - **Email verification** — `requireEmailVerification: true` forces users to verify email before login
+  - **Forgot password** — built-in password reset flow with `sendResetPassword` callback
+  - **Email callbacks** — `sendVerificationEmail` and `sendResetPassword` handle email templates
+  - **Password reset hook** — `onPasswordReset` callback fires after successful reset
 - Plugins:
-  - `emailVerification` — email verification flow with sendVerificationEmail callback
-  - `forgotPassword` — forgot password + reset password flow
   - `sveltekitCookies(getRequestEvent)` — handles cookie injection per request
 
 **Usage in API routes:**
@@ -44,7 +47,9 @@ const session = await requireSession(request.headers);
 - Attempting sign-up when limit is reached returns error code `USER_LIMIT_REACHED`
 
 **Email Sending:**
-- `sendVerificationEmailFn` currently logs to console (TODO: implement actual email service)
+- `sendVerificationEmail` — called when user signs up or requests email verification; currently logs to console (TODO: implement Resend, SendGrid, or Nodemailer)
+- `sendResetPassword` — called when user requests password reset; currently logs to console (TODO: implement actual email service)
+- Both functions receive user data and verification/reset URL; avoid awaiting email sending to prevent timing attacks
 
 ---
 

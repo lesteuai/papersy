@@ -18,7 +18,7 @@ Import via `$lib/components/{layer}/ComponentName.svelte` or `$lib/components/de
 
 | Component | Layer | Props | Named Slots | Notes |
 |---|---|---|---|---|
-| Header | organism | — (imports stores) | — | Logout calls `authClient.signOut()` |
+| Header | organism | — (imports stores) | — | Logout calls `getAuthClient()!.signOut()` |
 | Button | atom | color, style, size, href, additionalClass, target, rel | `icon` | |
 | Card | atom | additionalClass, href, target, rel | `image`, `content`, `footer` | |
 | Image | atom | src, alt, fullBleed, formats, widths | — | |
@@ -102,7 +102,7 @@ Static top nav. Position: static.
 
 - Renders Logo linked to `/` and conditional Logout button
 - Logout only shows when `$loggedIn = true`
-- Logout calls `authClient.signOut()` then `loggedIn.set(false)`
+- Logout calls `getAuthClient()!.signOut()` then `loggedIn.set(false)`
 - No props — reads from stores directly
 
 ---
@@ -122,16 +122,20 @@ type Mode = 'summary' | 'chat'
 ---
 
 ### LoginCard
-Centered login card with email/password form.
+Centered login/sign-up card with mode toggle.
 
 | Prop | Type |
 |---|---|
 | `onLogin` | `(email: string, password: string) => Promise<string \| null>` |
+| `onSignUp` | `(name: string, email: string, password: string) => Promise<string \| null>` |
 
 - Returns `null` on success, an error message string on failure
 - Component shows the error message if returned
-- Shows "Logging in..." and disables button while `loading = true`
-- **Updated from previous:** `onLogin` is now async with email parameter (was sync username)
+- Shows loading state (e.g., "Logging in..." or "Signing up...") and disables button while loading
+- Toggle between Sign In and Sign Up modes
+- Sign In mode: shows email/password fields + "Forgot password?" link
+- Sign Up mode: shows name/email/password fields + toggle back to Sign In
+- Both modes reset form and error when switching
 
 ---
 

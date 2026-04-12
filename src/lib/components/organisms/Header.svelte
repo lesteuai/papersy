@@ -2,10 +2,10 @@
 	import Logo from '$lib/components/atoms/Logo.svelte';
 	import Button from '$lib/components/atoms/Button.svelte';
 	import { loggedIn } from '$lib/stores/auth';
-	import { authClient } from '$lib/auth-client';
+	import { getAuthClient } from '$lib/auth-client';
 
 	async function handleLogout() {
-		await authClient.signOut();
+		await getAuthClient()!.signOut();
 		loggedIn.set(false);
 	}
 </script>

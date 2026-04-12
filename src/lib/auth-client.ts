@@ -1,3 +1,11 @@
+import { browser } from '$app/environment';
 import { createAuthClient } from 'better-auth/svelte';
 
-export const authClient = createAuthClient({ baseURL: '/api/auth' });
+let authClient: ReturnType<typeof createAuthClient> | null = null;
+
+export function getAuthClient() {
+	if (browser && !authClient) {
+		authClient = createAuthClient({ baseURL: '/api/auth' });
+	}
+	return authClient;
+}

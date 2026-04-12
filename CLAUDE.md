@@ -48,7 +48,7 @@ Server-side configuration (`.env`):
 
 **Authentication**: better-auth with email/password flows
 - Sessions stored in PostgreSQL
-- Client uses `authClient` from `$lib/auth-client.ts`
+- Client uses `getAuthClient()` from `$lib/auth-client.ts` (lazy browser-only initialization via `$app/environment`)
 - Server checks session via `auth.api.getSession({ headers })` in API routes
 
 **Database**: PostgreSQL with Drizzle ORM

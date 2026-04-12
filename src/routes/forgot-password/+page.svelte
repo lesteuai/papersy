@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { getAuthClient } from '$lib/auth-client';
 	import Button from '$lib/components/atoms/Button.svelte';
 
 	let email = $state('');
@@ -12,14 +13,12 @@
 		message = null;
 
 		try {
-			const res = await fetch('/api/auth/forgot-password', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ email }),
+			const { data, error: err } = await getAuthClient()!.requestPasswordReset({
+				email,
+				redirectTo: `${window.location.origin}/reset-password`,
 			});
 
-			if (!res.ok) {
-				const err = await res.json();
+			if (err) {
 				error = err.message ?? 'Failed to send reset email';
 			} else {
 				message = 'Check your email for password reset instructions.';
