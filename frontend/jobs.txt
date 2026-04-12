@@ -1,9 +1,0 @@
-- const session = await auth.api.getSession({ headers: request.headers });
-	if (!session) error(401, 'Unauthorized');
-=> need a unified function to call this
-- return json() should be the norm for API, no more new Response() if we return JSON. not sure if api/auth/[...all] agree.
-- import pdf from 'pdf-parse'; pdf not found in /upload
-- limit to 100 signups: lib/server/auth.ts: db.count(), { emailVerification, forgotPassword } from 'better-auth/plugins'; not found
-- reset-password, forgot-password:
-+ import type { PageServerLoad } from './$types'; find it
-+ onsubmit|preventDefault={handleSubmit}, what is this?
