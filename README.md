@@ -35,12 +35,14 @@ docker compose -f docker/postgres.yaml up -d
 
 **2. Install dependencies**
 ```sh
-npm install
+pnpm install
 ```
 
 **3. Configure environment**
 ```sh
 cp .env.example .env
+# Get BETTER_AUTH_SECRET key
+./generate-better-auth-key
 # fill in CHAT_MODEL_URL, EMBEDDING_URL, and verify PG_* values
 ```
 
@@ -57,13 +59,13 @@ Available environment variables:
 
 **4. Push database schema**
 ```sh
-npm run auth:schema   # generate better-auth tables
-npm run db:push       # create tables in PostgreSQL
+pnpm run db:generate       # create tables in PostgreSQL
+pnpm run db:migrate   # generate table schema
 ```
 
 **5. Start dev server**
 ```sh
-npm run dev
+pnpm run dev
 ```
 
 Open http://localhost:5173 in your browser.
@@ -73,12 +75,12 @@ Open http://localhost:5173 in your browser.
 ## Development
 
 ```sh
-npm run dev           # dev server at http://localhost:5173
-npm run build         # production build
-npm run preview       # preview production build
-npm run check         # type-check
-npm run lint          # lint + format check
-npm run db:studio     # Drizzle Studio (DB browser)
+pnpm run dev           # dev server at http://localhost:5173
+pnpm run build         # production build
+pnpm run preview       # preview production build
+pnpm run check         # type-check
+pnpm run lint          # lint + format check
+pnpm run db:studio     # Drizzle Studio (DB browser)
 ```
 
 ---
