@@ -23,6 +23,7 @@ Import via `$lib/components/{layer}/ComponentName.svelte` or `$lib/components/de
 | Card | atom | additionalClass, href, target, rel | `image`, `content`, `footer` | |
 | Image | atom | src, alt, fullBleed, formats, widths | — | |
 | Logo | atom | animated | — | |
+| AuthCard | dedicated/app | `title: string`, `children: Snippet` | — | Shared auth page shell; provides global `.field`, `.submit-row`, `.footer-section`, `.error`, `.success` classes |
 | LoginCard | dedicated/app | `onLogin: (email, password) => Promise<string \| null>` | — | async; shows error + loading state |
 | FilePanel | dedicated/app | files, selectedFileId, uploading?, onUpload, onSelect, onDelete | — | uploading disables button |
 | FileListItem | dedicated/app | file, selected, onSelect, onDelete | — | |
@@ -118,6 +119,19 @@ type PapersyFile = { id: string; name: string; summaryData?: SummaryData }
 type ChatMessage = { role: 'user' | 'ai'; text: string }
 type Mode = 'summary' | 'chat'
 ```
+
+---
+
+### AuthCard
+Centered card shell shared by all auth pages (login, forgot-password, reset-password).
+
+| Prop | Type |
+|---|---|
+| `title` | `string` |
+| `children` | `Snippet` |
+
+- Renders a centered wrapper + styled card + h1 from `title`
+- Provides global CSS classes to children via `:global()`: `.field`, `.submit-row`, `.footer-section`, `.error`, `.success`
 
 ---
 
