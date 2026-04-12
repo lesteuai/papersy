@@ -5,7 +5,7 @@ let authClient: ReturnType<typeof createAuthClient> | null = null;
 
 export function getAuthClient() {
 	if (browser && !authClient) {
-		authClient = createAuthClient({ baseURL: '/api/auth' });
+		authClient = createAuthClient();
 	}
 	return authClient;
 }

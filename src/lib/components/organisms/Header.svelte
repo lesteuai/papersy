@@ -25,7 +25,7 @@
 <style lang="scss">
 	header {
 		position: static;
-		padding: 10px 0;
+		padding: 8px 0;
 		border-bottom: 1px solid rgba(var(--color--text-rgb), 0.1);
 
 		.container {
@@ -35,7 +35,7 @@
 		}
 
 		.logo {
-			height: 64px;
+			height: 48px;
 		}
 	}
 </style>

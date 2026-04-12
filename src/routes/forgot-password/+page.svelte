@@ -32,66 +32,105 @@
 	}
 </script>
 
-<div class="forgot-password-container">
-	<div class="form-card">
+<div class="forgot-password-wrapper">
+	<div class="forgot-password-card">
 		<h1>Forgot Password</h1>
 		<p>Enter your email address and we'll send you a password reset link.</p>
 
 		{#if error}
-			<div class="error">{error}</div>
+			<p class="error">{error}</p>
 		{/if}
 
 		{#if message}
-			<div class="success">{message}</div>
+			<p class="success">{message}</p>
 		{:else}
 			<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
-				<input type="email" placeholder="Email" bind:value={email} required disabled={submitting} />
-				<Button type="submit" disabled={submitting || !email}>{submitting ? 'Sending...' : 'Send Reset Link'}</Button>
+				<div class="field">
+					<label for="email">Email</label>
+					<input
+						id="email"
+						type="email"
+						bind:value={email}
+						placeholder="Enter your email"
+						required
+						disabled={submitting}
+					/>
+				</div>
+				<div class="submit-row">
+					<Button type="submit" disabled={submitting || !email}>{submitting ? 'Sending...' : 'Send Reset Link'}</Button>
+				</div>
 			</form>
 		{/if}
 
-		<p><Button href="/" style="clear">Back Home</Button></p>
+		<div class="back-section">
+			<Button href="/" style="clear" size="small">Back to Login</Button>
+		</div>
 	</div>
 </div>
 
 <style lang="scss">
-	.forgot-password-container {
+	.forgot-password-wrapper {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		min-height: 100vh;
+		min-height: calc(100vh - 85px);
 		padding: 20px;
 	}
 
-	.form-card {
+	.forgot-password-card {
+		background: var(--color--card-background);
+		box-shadow: var(--card-shadow);
+		border-radius: 12px;
+		padding: 40px;
 		width: 100%;
 		max-width: 400px;
-		padding: 30px;
-		border-radius: 8px;
-		background: rgba(var(--color--text-rgb), 0.02);
-		border: 1px solid rgba(var(--color--text-rgb), 0.1);
 
 		h1 {
-			margin: 0 0 8px 0;
+			font-size: 2rem;
+			text-align: center;
+			margin-bottom: 20px;
+			color: var(--color--primary);
 		}
 
-		p {
-			margin: 0 0 20px 0;
+		> p {
+			text-align: center;
+			margin: 0 0 30px 0;
 			color: rgba(var(--color--text-rgb), 0.7);
 		}
 
 		form {
 			display: flex;
 			flex-direction: column;
-			gap: 12px;
-			margin-bottom: 16px;
+			gap: 20px;
+			margin-bottom: 20px;
+		}
+	}
+
+	.field {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+
+		label {
+			font-size: 0.9rem;
+			font-weight: 600;
+			color: var(--color--text-shade);
 		}
 
 		input {
-			padding: 8px 12px;
+			padding: 10px 14px;
 			border: 1px solid rgba(var(--color--text-rgb), 0.2);
-			border-radius: 4px;
-			font-size: 14px;
+			border-radius: 8px;
+			font: inherit;
+			font-size: 1rem;
+			background: var(--color--page-background);
+			color: var(--color--text);
+			transition: border-color 0.2s;
+
+			&:focus {
+				outline: none;
+				border-color: var(--color--primary);
+			}
 
 			&:disabled {
 				opacity: 0.6;
@@ -100,22 +139,34 @@
 	}
 
 	.error {
-		padding: 12px;
-		margin-bottom: 16px;
-		background: rgba(255, 0, 0, 0.1);
-		border: 1px solid rgba(255, 0, 0, 0.3);
-		border-radius: 4px;
-		color: rgba(255, 0, 0, 0.8);
-		font-size: 14px;
+		font-size: 0.875rem;
+		color: #e53e3e;
+		margin: 0 0 20px 0;
+		padding: 12px 14px;
+		background: rgba(229, 62, 62, 0.1);
+		border: 1px solid rgba(229, 62, 62, 0.2);
+		border-radius: 8px;
 	}
 
 	.success {
-		padding: 12px;
-		margin-bottom: 16px;
-		background: rgba(0, 255, 0, 0.1);
-		border: 1px solid rgba(0, 255, 0, 0.3);
-		border-radius: 4px;
-		color: rgba(0, 255, 0, 0.8);
-		font-size: 14px;
+		font-size: 0.875rem;
+		color: #22863a;
+		margin: 0 0 20px 0;
+		padding: 12px 14px;
+		background: rgba(34, 134, 58, 0.1);
+		border: 1px solid rgba(34, 134, 58, 0.2);
+		border-radius: 8px;
+	}
+
+	.submit-row {
+		display: flex;
+		justify-content: flex-end;
+		margin-top: 8px;
+	}
+
+	.back-section {
+		margin-top: 20px;
+		padding-top: 20px;
+		border-top: 1px solid rgba(var(--color--text-rgb), 0.1);
 	}
 </style>
