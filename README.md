@@ -46,10 +46,10 @@ A lightweight scheduler watches for new papers and processes them automatically,
 ## Phase 1: Project Setup & Infrastructure
 
 - [x] Initialize Git repository with `.gitignore`, `README.md`, and branch strategy
-- [ ] Scaffold SvelteKit project with TypeScript
+- [x] Scaffold SvelteKit project with TypeScript
 - [x] Configure environment variable management (`.env`, `$env/static/private`)
 - [ ] Set up Docker and write base `Dockerfile`
-- [ ] Write `docker-compose.yml` to orchestrate backend, frontend, and database services locally
+- [x] Write `docker-compose.yml` to orchestrate backend, frontend, and database services locally
 - [x] Set up PostgreSQL
 - [x] Enable pgvector extension
 
@@ -60,7 +60,7 @@ A lightweight scheduler watches for new papers and processes them automatically,
 - [x] Build a PDF ingestion module that accepts local files or URLs
 - [x] Integrate a parsing library (e.g., `pdf-parse` or `pdfjs-dist`) to extract clean text
 - [ ] Handle edge cases: scanned PDFs, multi-column layouts, references sections
-- [ ] Store raw extracted text in the database, linked to the uploaded file
+- [x] Store raw extracted text in the database, linked to the uploaded file
 - [ ] Write a batch ingestion flow that processes multiple PDFs in one run
 - [ ] Add basic metadata extraction: title, authors, publication date (via regex or LLM)
 
@@ -76,24 +76,24 @@ A lightweight scheduler watches for new papers and processes them automatically,
   - Limitations
 - [x] Integrate OpenAI API as the summarization model
 - [ ] Implement long-context chunking strategy for papers exceeding token limits
-- [ ] Store structured summaries as JSON in the database, linked to the source paper
+- [x] Store structured summaries as JSON in the database, linked to the source paper
 - [ ] Add token usage logging per request (model, prompt tokens, completion tokens, cost estimate)
 
 ---
 
 ## Phase 4: Semantic Search (RAG Layer)
 
-- [ ] Integrate OpenAI `text-embedding-3-small` for paper embeddings
-- [ ] Store embeddings in PostgreSQL using pgvector
-- [ ] Chunk paper text and upsert embeddings into the vector store on ingestion
-- [ ] Build a semantic search endpoint: given a query, return top-k relevant papers
+- [x] Integrate OpenAI `text-embedding-3-small` for paper embeddings
+- [x] Store embeddings in PostgreSQL using pgvector
+- [x] Chunk paper text and upsert embeddings into the vector store on ingestion
+- [x] Build a semantic search endpoint: given a query, return top-k relevant papers
 - [ ] Combine vector search with keyword metadata filters (author, date, topic)
 
 ---
 
 ## Phase 5: Backend API (SvelteKit Server Routes)
 
-- [ ] Scaffold API routes under `src/routes/api/`
+- [x] Scaffold API routes under `src/routes/api/`
 - [ ] Endpoints to build:
   - `POST /api/papers/ingest`: upload and process a PDF
   - `GET /api/papers`: list all papers with metadata and summary
@@ -109,19 +109,19 @@ A lightweight scheduler watches for new papers and processes them automatically,
 - [ ] Set up a scheduled job to watch for new PDFs (folder, S3 bucket or Supabase Storage bucket)
 - [ ] Use a lightweight scheduler (e.g., `APScheduler` or a serverless cron trigger)
 - [ ] Build a processing queue so papers are summarized asynchronously
-- [ ] Add job status tracking: `pending`, `processing`, `complete`, `failed`
+- [x] Add job status tracking: `pending`, `processing`, `complete`, `failed`
 - [ ] Send a notification (email or webhook) when a batch job completes
 
 ---
 
 ## Phase 7: Frontend (SvelteKit)
 
-- [ ] Build paper upload interface (drag-and-drop PDF uploader)
-- [ ] Build paper list view with metadata, tags, and summary preview
-- [ ] Build paper detail view with full structured summary
+- [x] Build paper upload interface
+- [x] Build paper list view with metadata, tags, and summary preview
+- [x] Build paper detail view with full structured summary
 - [ ] Build semantic search bar with results ranked by relevance
 - [ ] Build a usage dashboard: papers processed, tokens consumed, estimated cost
-- [ ] Ensure responsive layout and clean, readable typography
+- [x] Ensure responsive layout and clean, readable typography
 
 ---
 
