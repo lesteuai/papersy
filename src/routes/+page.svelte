@@ -33,14 +33,20 @@
 
 	async function handleLogin(email: string, password: string): Promise<string | null> {
 		const { error } = await getAuthClient()!.signIn.email({ email, password });
-		if (error) return error.message ?? 'Login failed';
+		if (error) {
+			const message = error.message?.replace(/^\[[^\]]+\]\s*/, '') ?? 'Login failed. Please try again';
+			return message;
+		} 
 		loggedIn.set(true);
 		return null;
 	}
 
 	async function handleSignUp(name: string, email: string, password: string): Promise<string | null> {
 		const { error } = await getAuthClient()!.signUp.email({ name, email, password });
-		if (error) return error.message ?? 'Sign up failed';
+		if (error) {
+			const message = error.message?.replace(/^\[[^\]]+\]\s*/, '') ?? 'Sign up failed. Please try again';
+			return message;
+		}
 		// Email verification required — user will see verification page or message
 		return null;
 	}

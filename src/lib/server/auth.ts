@@ -29,7 +29,7 @@ export const auth = betterAuth({
 	emailAndPassword: {
 		enabled: true,
 		requireEmailVerification: true,
-		async beforeSignUp(user) {
+		async beforeSignUp() {
 			const result = await db.select({ count: count() }).from(userTable);
 			if (result[0].count >= MAX_USERS) {
 				return {
@@ -41,7 +41,7 @@ export const auth = betterAuth({
 			}
 		},
 		sendResetPassword,
-		onPasswordReset: async ({ user }, request) => {
+		onPasswordReset: async ({ user }) => {
 			console.log(`[AUTH] Password reset completed for ${user.email}`);
 		},
 	},
