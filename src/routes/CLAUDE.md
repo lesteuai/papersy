@@ -1,6 +1,6 @@
 # src/routes
 
-SvelteKit file-based routing. Full-stack SSR application with authenticated pages and REST API routes.
+SvelteKit file-based routing. Full-stack SPA application with authenticated pages and REST API routes.
 
 ---
 
@@ -8,7 +8,7 @@ SvelteKit file-based routing. Full-stack SSR application with authenticated page
 
 ```
 src/routes/
-├── +layout.ts                    ← export const ssr = true
+├── +layout.ts                    ← export const ssr = false
 ├── +layout.svelte                ← Header + outlet, global styles
 ├── +page.server.ts               ← load(): fetch user's papers from DB
 ├── +page.svelte                  ← App shell: Login page or File+Content panels
@@ -30,8 +30,8 @@ src/routes/
 
 ## Root layout
 
-**`+layout.ts`** — `export const ssr = true`
-- Server-side rendering enabled; all pages rendered on server per request
+**`+layout.ts`** — `export const ssr = false`
+- SPA mode enabled; pages rendered client-side after initial hydration
 
 **`+layout.svelte`**
 - Renders `<Header />` and `<main>{@render children()}</main>`
@@ -41,13 +41,14 @@ src/routes/
 
 ## Root page (`/`)
 
-**`+page.server.ts`** — `load()` function
+**`+page.server.ts`** — `load()` function (SPA mode)
 
-Returns `{ papers: PapersyFile[], loggedIn: boolean }` to `+page.svelte`.
+In SPA mode, `load()` runs on the client and returns `{ papers: PapersyFile[], loggedIn: boolean }` to `+page.svelte`.
 
-- Checks `auth.api.getSession({ headers: request.headers })`
+- Calls API endpoints to fetch data (since database is not directly accessible client-side)
+- Checks session status via API
 - If no session: `{ papers: [], loggedIn: false }`
-- If session: queries `paper` table with relational API (`db.query.paper.findMany({ with: { references: true } })`) to fetch all papers and their references in one query, returns as `PapersyFile[]` with populated `summaryData`
+- If session: calls an API endpoint to fetch papers and their references, returns as `PapersyFile[]` with populated `summaryData`
 
 **`+page.svelte`** — App shell
 

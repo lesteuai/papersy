@@ -8,14 +8,15 @@
 	import type { PapersyFile, ChatMessage, Mode } from '$lib/components/dedicated/app/types';
 
 	let { data } = $props();
+	// File state — seed from server on load
+	let files: PapersyFile[] = $state([]);
 
 	// Sync loggedIn store from server session on mount
 	onMount(() => {
 		if (data.loggedIn) loggedIn.set(true);
+		if (data.papers) files = data.papers;
 	});
 
-	// File state — seed from server on load
-	let files: PapersyFile[] = $state(data.papers ?? []);
 	let selectedFileId: string | null = $state(null);
 	let selectedFile = $derived(files.find((f) => f.id === selectedFileId) ?? null);
 	let uploading = $state(false);

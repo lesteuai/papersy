@@ -3,7 +3,7 @@
 - **Language**: TypeScript
 - **Framework**: SvelteKit 5 + Vite
 - **Package Manager**: npm
-- **Build**: `adapter-node` (SSR: `ssr = true` in +layout.ts)
+- **Build**: `adapter-node` (SPA mode: `ssr = false` in +layout.ts)
 - **Styling**: SCSS with CSS custom properties, dark/light theming
 - **Add-ons**: prettier, eslint, vitest, playwright, tailwindcss, better-auth, mdsvex, mcp, langchain, pdf-parse, zod, pg, drizzle-orm, pgvector
 
@@ -23,12 +23,12 @@ Server-side configuration (`.env`):
 
 ## High-Level Architecture
 
-**Papersy** is a full-stack application for research paper summarization and retrieval-augmented generation (RAG) chat. Built with SvelteKit's adapter-node (`ssr = true`) — pages render server-side, authentication is handled via better-auth with PostgreSQL session storage, and a REST API exposes document management and chat functionality.
+**Papersy** is a full-stack application for research paper summarization and retrieval-augmented generation (RAG) chat. Built with SvelteKit's adapter-node in SPA mode (`ssr = false`) — pages render client-side, authentication is handled via better-auth with PostgreSQL session storage, and a REST API exposes document management and chat functionality.
 
 ### Key Directories
 
 - **[src/routes/](src/routes/CLAUDE.md)** — File-based routing
-  - `+layout.ts`, `+layout.svelte` — app shell with SSR enabled
+  - `+layout.ts`, `+layout.svelte` — app shell with SPA mode enabled
   - `+page.server.ts`, `+page.svelte` — authenticated home page
   - `api/auth/[...all]/+server.ts` — better-auth handler
   - `api/upload/+server.ts` — PDF upload, summarize, vectorize

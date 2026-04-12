@@ -12,7 +12,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import type { RequestHandler } from '@sveltejs/kit';
 
-const PROMPT_PATH = path.resolve('..', 'prompts', 'summarize_prompt.txt');
+const PROMPT_PATH = path.resolve('prompts', 'summarize_prompt.txt');
 
 async function processUpload(jobId: string, userId: string, file: File, fileBuffer: ArrayBuffer) {
 	try {
