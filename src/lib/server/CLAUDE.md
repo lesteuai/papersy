@@ -163,6 +163,17 @@ Uses `CHAT_MODEL_URL` env var, `maxTokens: 6000`, model name `"local"`.
 
 ---
 
+**`checkLlmHealth()`** → `Promise<boolean>`
+
+Pings `CHAT_MODEL_URL/models` with a 5-second timeout. Returns `true` if reachable, `false` on any error or timeout. Call this before invoking the LLM to fail fast with a 503 instead of hanging.
+
+```ts
+const healthy = await checkLlmHealth();
+if (!healthy) error(503, 'LLM service unavailable');
+```
+
+---
+
 **`getVectorStore()`** → `Promise<PGVectorStore>`
 
 Initialized with:
