@@ -72,6 +72,13 @@
 	.panel-header {
 		padding: 12px;
 		border-bottom: 1px solid rgba(var(--color--text-rgb), 0.1);
+		display: flex;
+		justify-content: center;
+
+		:global(button) {
+			width: 50%;
+			font-size: 1rem !important;
+		}
 	}
 
 	.hidden-input {
