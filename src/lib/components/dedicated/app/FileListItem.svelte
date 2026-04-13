@@ -28,6 +28,9 @@
 <div class="file-item" class:selected>
 	<button class="file-name" onclick={() => onSelect(file.id)}>
 		{file.name}
+		{#if file.jobStatus === 'pending' || file.jobStatus === 'processing'}
+			<span class="spinner" aria-label="Processing"></span>
+		{/if}
 	</button>
 	<div class="menu-wrapper">
 		<button class="menu-trigger" onclick={() => menuOpen = !menuOpen} aria-label="File options">
@@ -77,6 +80,24 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+		display: flex;
+		align-items: center;
+		gap: 6px;
+	}
+
+	.spinner {
+		display: inline-block;
+		width: 10px;
+		height: 10px;
+		border: 2px solid rgba(var(--color--text-rgb), 0.2);
+		border-top-color: var(--color--primary);
+		border-radius: 50%;
+		animation: spin 0.8s linear infinite;
+		flex-shrink: 0;
+	}
+
+	@keyframes spin {
+		to { transform: rotate(360deg); }
 	}
 
 	.menu-wrapper {

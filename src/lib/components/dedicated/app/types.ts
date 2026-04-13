@@ -10,6 +10,8 @@ export type PapersyFile = {
 	id: string;
 	name: string;
 	summaryData?: SummaryData;
+	jobId?: string;
+	jobStatus?: string; // 'pending' | 'processing' | 'failed' | undefined (done)
 };
 
 export type ChatMessage = {
