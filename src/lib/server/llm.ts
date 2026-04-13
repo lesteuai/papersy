@@ -53,6 +53,17 @@ export function getLlm() {
 	});
 }
 
+export async function checkLlmHealth(): Promise<boolean> {
+	try {
+		const res = await fetch(`${env.CHAT_MODEL_URL}/models`, {
+			signal: AbortSignal.timeout(5000),
+		});
+		return res.ok;
+	} catch {
+		return false;
+	}
+}
+
 export async function getVectorStore() {
 	return PGVectorStore.initialize(getEmbeddings(), vectorStoreConfig);
 }

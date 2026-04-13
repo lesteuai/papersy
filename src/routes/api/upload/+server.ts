@@ -3,7 +3,7 @@ import { requireSession } from '$lib/server/auth';
 import { db } from '$lib/server/db';
 import { paper, reference, job } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
-import { getVectorStore, getLlm, SummarySchema } from '$lib/server/llm';
+import { getVectorStore, getLlm, SummarySchema, checkLlmHealth } from '$lib/server/llm';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
 import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters';
 import { Document } from '@langchain/core/documents';
@@ -16,6 +16,12 @@ const PROMPT_PATH = path.resolve('prompts', 'summarize_prompt.txt');
 
 async function processUpload(jobId: string, userId: string, file: File, fileBuffer: ArrayBuffer) {
 	try {
+		const healthy = await checkLlmHealth();
+		if (!healthy) {
+			await db.update(job).set({ status: 'failed', error: 'LLM service unavailable' }).where(eq(job.id, jobId));
+			return;
+		}
+
 		// Extract text from PDF
 		const buffer = Buffer.from(fileBuffer);
 		const parser = new PDFParse({ data: buffer });
