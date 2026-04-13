@@ -93,6 +93,14 @@ Open http://localhost:5173 in your browser.
 | `pnpm run db:studio` | **Dev** | Open Drizzle Studio for interactive database browser |
 | `pnpm run auth:schema` | **Dev** | Generate better-auth schema types (run after auth changes) |
 
+### Debugging
+
+To debug API routes and server-side code:
+
+1. Launch the VS Code debugger using the included launch configuration (Run > Start Debugging or press F5)
+2. Add `debugger;` statements to `.ts` files in `src/routes/api/` to set breakpoints
+3. The debugger will pause execution when a breakpoint is hit, allowing you to inspect variables and step through code
+
 ---
 
 ### High-Level Overview
