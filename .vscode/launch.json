@@ -1,0 +1,23 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Debug SvelteKit dev server",
+			"type": "node",
+			"request": "launch",
+			"runtimeExecutable": "npm",
+			"runtimeArgs": ["run", "dev"],
+			"cwd": "/home/bachleu/Documents/My-Programming/le steu/papersy",
+			"sourceMaps": true,
+			"resolveSourceMapLocations": ["/home/bachleu/Documents/My-Programming/le steu/papersy/**", "!**/node_modules/**"],
+			"skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+			"env": {
+				"NODE_OPTIONS": "--inspect"
+			},
+			"sourceMapPathOverrides": {
+				"/@fs/*": "/*",
+				"*": "*"
+			}
+		}
+	]
+}

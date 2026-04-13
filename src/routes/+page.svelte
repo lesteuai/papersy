@@ -7,6 +7,8 @@
 	import ContentPanel from '$lib/components/dedicated/app/ContentPanel.svelte';
 	import type { PapersyFile, ChatMessage, Mode } from '$lib/components/dedicated/app/types';
 
+	const pollTimeout = 5000;
+
 	let { data } = $props();
 	// File state — seed from server on load
 	let files: PapersyFile[] = $state([]);
@@ -95,13 +97,13 @@
 				} else if (retries < maxRetries) {
 					// Still processing — poll again
 					retries++;
-					setTimeout(poll, 1000);
+					setTimeout(poll, pollTimeout);
 				}
 			} catch (err) {
 				console.error('Poll error:', err);
 				if (retries < maxRetries) {
 					retries++;
-					setTimeout(poll, 1000);
+					setTimeout(poll, pollTimeout);
 				}
 			}
 		};

@@ -1,1 +1,10 @@
+- Chat box and chat mode are disabled if the paper is not yet finished being processed
+- chat box should not switch immediately as soon as user types something in. They should only switch once they send the message
 - Combine forgot-password into login-card so they transition smoothly
+- create a health check on llm, to prevent timeout or connection error to llm. If there is a connection error, just send an error immediately
+- when upload, add job AND empty paper so the paper can be deleted by using the menu on the main page, and the job progress can be shown on the main page, instead of disappearing when refreshing the page
+- When processing the pdf after uploading, there needs to be a progress indicator (bar or circle running indefinitely) until it gets a signal of error or finish processing
+- When chatting with the bot, ellipsis should have some animation to indicate thinking
+- Chat won't answer the second question and beyond
+- Chat switch is broken after pressing back, won't switch to chat mode from summary mode. Then I press back button again. Now it can't get back into the file (the highlighted one)
+- Add a line on README.md: debug using VS code and adding `debugger` to the API ts files
