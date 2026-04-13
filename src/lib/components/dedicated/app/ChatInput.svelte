@@ -3,10 +3,10 @@
 
 	let {
 		onSend,
-		oninput
+		disabled = false
 	}: {
 		onSend: (text: string) => void;
-		oninput?: () => void;
+		disabled?: boolean;
 	} = $props();
 
 	let text = $state('');
@@ -24,21 +24,17 @@
 			handleSubmit();
 		}
 	}
-
-	function handleInput() {
-		oninput?.();
-	}
 </script>
 
-<div class="chat-input">
+<div class="chat-input" class:disabled>
 	<textarea
 		bind:value={text}
 		placeholder="Chat box for Q&A the paper"
 		rows="1"
 		onkeydown={handleKeydown}
-		oninput={handleInput}
+		disabled={disabled}
 	></textarea>
-	<button class="send-btn" onclick={handleSubmit} aria-label="Send message" disabled={!text.trim()}>
+	<button class="send-btn" onclick={handleSubmit} aria-label="Send message" disabled={disabled || !text.trim()}>
 		<SendIcon />
 	</button>
 </div>
@@ -72,6 +68,11 @@
 			outline: none;
 			border-color: var(--color--primary);
 		}
+
+		&:disabled {
+			opacity: 0.5;
+			cursor: not-allowed;
+		}
 	}
 
 	.send-btn {
@@ -91,11 +92,15 @@
 
 		&:disabled {
 			opacity: 0.4;
-			cursor: default;
+			cursor: not-allowed;
 		}
 
 		&:not(:disabled):hover {
 			opacity: 0.85;
 		}
+	}
+
+	.chat-input.disabled {
+		pointer-events: none;
 	}
 </style>

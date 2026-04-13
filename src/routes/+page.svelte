@@ -23,6 +23,12 @@
 	let selectedFile = $derived(files.find((f) => f.id === selectedFileId) ?? null);
 	let uploading = $state(false);
 
+	let isProcessing = $derived(
+		selectedFileId && jobsInProgress[selectedFileId]
+			? ['pending', 'processing'].includes(jobsInProgress[selectedFileId].status)
+			: false
+	);
+
 	// Job tracking — map of placeeholder file ID -> { jobId, status, error? }
 	let jobsInProgress: Record<string, { jobId: string; status: string; error?: string }> = $state({});
 
@@ -204,6 +210,7 @@
 					onBack={handleBack}
 					onModeChange={(m) => (mode = m)}
 					onSend={handleSend}
+					disabled={isProcessing}
 				/>
 			</div>
 		{/if}
