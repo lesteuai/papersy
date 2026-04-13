@@ -165,19 +165,19 @@
 	async function handleSend(text: string) {
 		mode = 'chat';
 		messages = [...messages, { role: 'user', text }];
-		// Add loading indicator
-		messages = [...messages, { role: 'ai', text: '...' }];
+		// Add loading indicator with animated dots
+		messages = [...messages, { role: 'ai', text: '', loading: true }];
 		const res = await fetch('/api/chat', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ paperId: selectedFileId, messages: messages.slice(0, -1) }),
 		});
 		if (!res.ok) {
-			messages[messages.length - 1] = { role: 'ai', text: 'Error: failed to get a response.' };
+			messages = [...messages.slice(0, -1), { role: 'ai', text: 'Error: failed to get a response.' }];
 			return;
 		}
 		const data = await res.json();
-		messages[messages.length - 1] = { role: 'ai', text: data.text };
+		messages = [...messages.slice(0, -1), { role: 'ai', text: data.text }];
 	}
 </script>
 

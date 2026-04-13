@@ -6,7 +6,15 @@
 
 <div class="message" class:user={message.role === 'user'} class:ai={message.role === 'ai'}>
 	<span class="label">{message.role === 'user' ? 'You' : 'AI'}</span>
-	<p>{message.text}</p>
+	{#if message.loading}
+		<p class="loading-dots">
+			<span class="dot" style="animation-delay: 0ms;"></span>
+			<span class="dot" style="animation-delay: 150ms;"></span>
+			<span class="dot" style="animation-delay: 300ms;"></span>
+		</p>
+	{:else}
+		<p>{message.text}</p>
+	{/if}
 </div>
 
 <style lang="scss">
@@ -58,6 +66,35 @@
 			padding: 10px 14px;
 			font-size: 0.95rem;
 			line-height: 1.55;
+		}
+
+		.loading-dots {
+			display: flex;
+			gap: 4px;
+			align-items: center;
+		}
+
+		.dot {
+			display: inline-block;
+			width: 8px;
+			height: 8px;
+			border-radius: 50%;
+			background-color: currentColor;
+			opacity: 0.4;
+			animation: dot-bounce 1.4s infinite;
+		}
+
+		@keyframes dot-bounce {
+			0%,
+			80%,
+			100% {
+				opacity: 0.4;
+				transform: scale(1);
+			}
+			40% {
+				opacity: 1;
+				transform: scale(1.2);
+			}
 		}
 	}
 </style>

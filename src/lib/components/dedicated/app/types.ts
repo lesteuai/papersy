@@ -15,6 +15,7 @@ export type PapersyFile = {
 export type ChatMessage = {
 	role: 'user' | 'ai';
 	text: string;
+	loading?: boolean;
 };
 
 export type Mode = 'summary' | 'chat';
