@@ -146,6 +146,10 @@
 	}
 
 	function handleSelect(id: string) {
+		if (id !== selectedFileId) {
+			mode = 'summary';
+			messages = [];
+		}
 		selectedFileId = id;
 		mobileActivePanel = 'content';
 	}
@@ -161,6 +165,8 @@
 	}
 
 	function handleBack() {
+		mode = 'summary';
+		messages = [];
 		if (window.innerWidth < window.innerHeight) {
 			mobileActivePanel = 'files';
 		} else {
