@@ -20,7 +20,7 @@
 		<section class="summary-section">
 			<h3>Key Findings</h3>
 			<ul>
-				{#each data.keyFindings as finding}
+				{#each data.keyFindings as finding, idx (idx)}
 					<li>{finding}</li>
 				{/each}
 			</ul>
@@ -39,7 +39,7 @@
 		<section class="summary-section">
 			<h3>List of References</h3>
 			<ul>
-				{#each data.references as ref}
+				{#each data.references as ref, idx (idx)}
 					<li>{ref}</li>
 				{/each}
 			</ul>

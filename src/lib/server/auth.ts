@@ -22,8 +22,10 @@ async function sendResetPassword(data: { user: { email: string; name: string }; 
 	console.log(`[EMAIL] Password reset link for ${data.user.email}: ${data.url}`);
 }
 
+console.log('[AUTH] ORIGIN:', env.ORIGIN, '| process.env.ORIGIN:', process.env.ORIGIN);
+
 export const auth = betterAuth({
-	baseURL: env.ORIGIN,
+	baseURL: env.ORIGIN || process.env.ORIGIN,
 	secret: env.BETTER_AUTH_SECRET,
 	database: drizzleAdapter(db, { provider: 'pg' }),
 	emailAndPassword: {

@@ -7,7 +7,8 @@
 	let listEl: HTMLDivElement;
 
 	$effect(() => {
-		// scroll to bottom whenever messages change
+		// scroll to bottom whenever messages change. message; so it keeps track of changes of that variable
+		// eslint-disable-next-line
 		messages;
 		if (listEl) {
 			listEl.scrollTop = listEl.scrollHeight;
@@ -21,7 +22,7 @@
 			<p>Ask a question about this paper.</p>
 		</div>
 	{/if}
-	{#each messages as message (message.role + message.text)}
+	{#each messages as message, idx (idx)}
 		<ChatMessageComponent {message} />
 	{/each}
 </div>

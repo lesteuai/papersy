@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { loggedIn } from '$lib/stores/auth';
 	import { getAuthClient } from '$lib/auth-client';
+	import { invalidateAll } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import LoginCard from '$lib/components/dedicated/app/LoginCard.svelte';
 	import FilePanel from '$lib/components/dedicated/app/FilePanel.svelte';
@@ -17,14 +18,7 @@
 	onMount(() => {
 		if (data.loggedIn) loggedIn.set(true);
 		if (data.papers) {
-			files = data.papers;
-			// Resume polling for any in-progress jobs from server
-			for (const p of data.papers) {
-				if (p.jobId && (p.jobStatus === 'pending' || p.jobStatus === 'processing')) {
-					jobsInProgress[p.id] = { jobId: p.jobId, status: p.jobStatus };
-					pollJobStatus(p.id, p.jobId);
-				}
-			}
+			loadPaperstoFiles()
 		}
 	});
 
@@ -32,14 +26,14 @@
 	let selectedFile = $derived(files.find((f) => f.id === selectedFileId) ?? null);
 	let uploading = $state(false);
 
+	// Job tracking — map of placeholder file ID -> { jobId, status, error? }
+	let jobsInProgress: Record<string, { jobId: string; status: string; error?: string }> = $state({});
+	
 	let isProcessing = $derived(
 		selectedFileId && jobsInProgress[selectedFileId]
 			? ['pending', 'processing'].includes(jobsInProgress[selectedFileId].status)
 			: false
 	);
-
-	// Job tracking — map of placeeholder file ID -> { jobId, status, error? }
-	let jobsInProgress: Record<string, { jobId: string; status: string; error?: string }> = $state({});
 
 	// Content state
 	let mode: Mode = $state('summary');
@@ -54,8 +48,24 @@
 			const message = error.message?.replace(/^\[[^\]]+\]\s*/, '') ?? 'Login failed. Please try again';
 			return message;
 		} 
+		// Re-run the load() function so data.papers is populated with the user's papers
+		await invalidateAll();
+		if (data.papers) {
+			loadPaperstoFiles()
+		}
 		loggedIn.set(true);
 		return null;
+	}
+
+	function loadPaperstoFiles() {
+		files = data.papers;
+		// Resume polling for any in-progress jobs from server
+		for (const p of data.papers) {
+			if (p.jobId && (p.jobStatus === 'pending' || p.jobStatus === 'processing')) {
+				jobsInProgress[p.id] = { jobId: p.jobId, status: p.jobStatus };
+				pollJobStatus(p.id, p.jobId);
+			}
+		}
 	}
 
 	async function handleSignUp(name: string, email: string, password: string): Promise<string | null> {
