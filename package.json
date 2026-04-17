@@ -66,6 +66,7 @@
 		"drizzle-kit": "^0.31.8",
 		"drizzle-orm": "^0.45.1",
 		"langchain": "^1.2.39",
+		"marked": "^13.0.0",
 		"pdf-parse": "^2.4.5",
 		"pg": "^8.20.0",
 		"postgres": "^3.4.8",

@@ -174,14 +174,15 @@ Shows placeholder when `data` is null. `flex: 1`, `overflow-y: auto`.
 ---
 
 ### ChatMessage
-Single message bubble.
+Single message bubble. AI messages render markdown-formatted HTML; user messages are plain text.
 
 | Prop | Type |
 |---|---|
 | `message` | `ChatMessage` |
 
-User: right-aligned, primary background. AI: left-aligned, card background.
+User: right-aligned, primary background, plain text. AI: left-aligned, card background, markdown as formatted HTML.
 - When `message.loading` is true — renders three animated bouncing dots instead of message text
+- AI messages parsed with `marked.parse()` and rendered with `{@html}`, styled with `:global()` rules for headings, lists, code blocks, blockquotes, links, etc.
 
 ---
 
