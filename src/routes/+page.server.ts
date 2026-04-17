@@ -9,10 +9,10 @@ export const load: PageServerLoad = async ({ request }) => {
 	const session = await auth.api.getSession({ headers: request.headers });
 	if (!session) return { papers: [], loggedIn: false };
 
-	// Load all papers for this user (including empty ones being processed)
+	// Load all papers for this user with basic info only (id, name)
+	// Full summary details will be loaded on-demand when user clicks on a paper
 	const rows = await db.query.paper.findMany({
 		where: eq(paper.userId, session.user.id),
-		with: { references: true },
 	});
 
 	// Load active jobs (pending/processing) for this user
@@ -33,15 +33,7 @@ export const load: PageServerLoad = async ({ request }) => {
 		return {
 			id: row.id,
 			name: row.name,
-			summaryData: row.summary
-				? {
-						summary: row.summary,
-						keyFindings: JSON.parse(row.keyFindings ?? '[]'),
-						methodology: row.methodology ?? '',
-						limitations: row.limitations ?? '',
-						references: row.references.map((r) => r.text),
-					}
-				: undefined,
+			summaryData: undefined,
 			jobId: activeJob?.id,
 			jobStatus: activeJob?.status,
 		};

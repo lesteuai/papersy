@@ -166,13 +166,36 @@
 		pollJobStatus(paperId, jobId);
 	}
 
-	function handleSelect(id: string) {
+	async function handleSelect(id: string) {
 		if (id !== selectedFileId) {
 			mode = 'summary';
 			messages = [];
 		}
 		selectedFileId = id;
 		mobileActivePanel = 'content';
+
+		// Load full summary data if not already loaded
+		const file = files.find((f) => f.id === id);
+		if (file && !file.summaryData) {
+			try {
+				const res = await fetch(`/api/papers/${id}`);
+				if (!res.ok) return;
+				const paperData = await res.json();
+				files = files.map((f) =>
+					f.id === id
+						? {
+								id: f.id,
+								name: paperData.name,
+								summaryData: paperData.summaryData,
+								jobId: f.jobId,
+								jobStatus: f.jobStatus,
+							}
+						: f
+				);
+			} catch (err) {
+				console.error('Failed to load paper details:', err);
+			}
+		}
 	}
 
 	async function handleDelete(id: string) {
