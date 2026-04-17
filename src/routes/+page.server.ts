@@ -1,32 +1,37 @@
 import { auth } from '$lib/server/auth';
 import { db } from '$lib/server/db';
-import { paper, reference } from '$lib/server/db/schema';
+import { paper } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
-import type { PapersyFile } from '$lib/components/dedicated/app/types';
+import type { PapersyFile } from '$lib/utils/types';
 
 export const load: PageServerLoad = async ({ request }) => {
 	const session = await auth.api.getSession({ headers: request.headers });
 	if (!session) return { papers: [], loggedIn: false };
 
+	// Load all papers for this user with basic info only (id, name)
+	// Full summary details will be loaded on-demand when user clicks on a paper
 	const rows = await db.query.paper.findMany({
 		where: eq(paper.userId, session.user.id),
-		with: { references: true },
+		with: {
+			jobs: {
+				// inArray: filters nested jobs to only pending/processing
+			where: (job, { inArray }) => inArray(job.status, ['pending', 'processing']),
+				limit: 1,
+			},
+		},
 	});
 
-	const papers: PapersyFile[] = rows.map((row) => ({
-		id: row.id,
-		name: row.name,
-		summaryData: row.summary
-			? {
-					summary: row.summary,
-					keyFindings: JSON.parse(row.keyFindings ?? '[]'),
-					methodology: row.methodology ?? '',
-					limitations: row.limitations ?? '',
-					references: row.references.map((r) => r.text),
-				}
-			: undefined,
-	}));
+	const papers: PapersyFile[] = rows.map((row) => {
+		const activeJob = row.jobs[0];
+		return {
+			id: row.id,
+			name: row.name,
+			summaryData: undefined,
+			jobId: activeJob?.id,
+			jobStatus: activeJob?.status,
+		};
+	});
 
 	return { papers, loggedIn: true };
 };

@@ -57,8 +57,7 @@ Shared, reusable library code exported globally via the `$lib` import alias. Org
 - **Zod schemas** — structured output extraction from LLM responses
 
 ### Types
-- **Centralized in `utils/types.ts`** — all shared types
-- **App-specific types in `components/dedicated/app/types.ts`** — `PapersyFile`, `SummaryData`, `ChatMessage`, `Mode`
+- **Centralized in `utils/types.ts`** — all shared types including utility types, blog/feature types, and app-specific types (`PapersyFile`, `SummaryData`, `ChatMessage`, `Mode`)
 - **Re-exports in `index.ts`** — available via `$lib`
 
 ---
@@ -78,7 +77,7 @@ import { loggedIn } from '$lib/stores/auth'
 import { theme } from '$lib/stores/theme'
 
 // App types
-import type { PapersyFile, SummaryData, ChatMessage } from '$lib/components/dedicated/app/types'
+import type { PapersyFile, SummaryData, ChatMessage, Mode } from '$lib/utils/types'
 
 // Auth client (browser-side)
 import { getAuthClient } from '$lib/auth-client'

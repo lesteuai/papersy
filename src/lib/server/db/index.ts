@@ -9,6 +9,6 @@ if (!env.PG_USER || !env.PG_PASSWORD || !env.PG_HOST || !env.PG_PORT || !env.PG_
 
 const dbUrl = `postgresql://${env.PG_USER}:${env.PG_PASSWORD}@${env.PG_HOST}:${env.PG_PORT}/${env.PG_DATABASE}`;
 
-const client = postgres(dbUrl);
+export const client = postgres(dbUrl);
 
 export const db = drizzle(client, { schema });

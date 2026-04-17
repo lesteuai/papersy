@@ -3,7 +3,8 @@ import { requireSession } from '$lib/server/auth';
 import { db } from '$lib/server/db';
 import { paper, reference, job } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
-import { getVectorStore, getLlm, SummarySchema } from '$lib/server/llm';
+import { getVectorStore, getLlm, SummarySchema, checkLlmHealth } from '$lib/server/llm';
+import { activeJobs } from '$lib/server/upload-jobs';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
 import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters';
 import { Document } from '@langchain/core/documents';
@@ -14,14 +15,32 @@ import type { RequestHandler } from '@sveltejs/kit';
 
 const PROMPT_PATH = path.resolve('prompts', 'summarize_prompt.txt');
 
-async function processUpload(jobId: string, userId: string, file: File, fileBuffer: ArrayBuffer) {
+class AbortedError extends Error {}
+
+function throwIfAborted(signal: AbortSignal) {
+	if (signal.aborted) throw new AbortedError();
+}
+
+async function processUpload(jobId: string, paperId: string, userId: string, file: File, fileBuffer: ArrayBuffer, signal: AbortSignal) {
 	try {
+		throwIfAborted(signal);
+
+		const healthy = await checkLlmHealth();
+		if (!healthy) {
+			await db.update(job).set({ status: 'failed', error: 'LLM service unavailable' }).where(eq(job.id, jobId));
+			return;
+		}
+
+		throwIfAborted(signal);
+
 		// Extract text from PDF
 		const buffer = Buffer.from(fileBuffer);
 		const parser = new PDFParse({ data: buffer });
 		const textResult = await parser.getText();
 		const paperText = textResult.text;
 		await parser.destroy();
+
+		throwIfAborted(signal);
 
 		// Summarize
 		const systemPrompt = await fs.readFile(PROMPT_PATH, 'utf-8');
@@ -39,17 +58,13 @@ async function processUpload(jobId: string, userId: string, file: File, fileBuff
 			.set({ status: 'processing' })
 			.where(eq(job.id, jobId));
 
-		// Save paper row (without references)
-		const paperId = crypto.randomUUID();
-		await db.insert(paper).values({
-			id: paperId,
-			userId,
-			name: file.name,
+		// Update paper row with summary data
+		await db.update(paper).set({
 			summary: result.summary,
 			keyFindings: JSON.stringify(result.key_findings),
 			methodology: result.methodology,
 			limitations: result.limitations,
-		});
+		}).where(eq(paper.id, paperId));
 
 		// Save references
 		if (result.references.length > 0) {
@@ -62,6 +77,8 @@ async function processUpload(jobId: string, userId: string, file: File, fileBuff
 			);
 		}
 
+		throwIfAborted(signal);
+
 		// Vectorize — split and index
 		const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 1000, chunkOverlap: 200 });
 		const docs = await splitter.splitDocuments([
@@ -72,17 +89,24 @@ async function processUpload(jobId: string, userId: string, file: File, fileBuff
 		await vectorStore.addDocuments(docs);
 		await vectorStore.end();
 
-		// Update job to done with paperId
+		// Update job to done
 		await db
 			.update(job)
-			.set({ status: 'done', paperId })
+			.set({ status: 'done' })
 			.where(eq(job.id, jobId));
 	} catch (err) {
+		if (err instanceof AbortedError) {
+			await db.update(job).set({ status: 'cancelled' }).where(eq(job.id, jobId));
+			return;
+		}
 		const errorMessage = err instanceof Error ? err.message : 'Unknown error';
 		await db
 			.update(job)
 			.set({ status: 'failed', error: errorMessage })
 			.where(eq(job.id, jobId));
+	} finally {
+		// Clean up the abort controller from the map
+		activeJobs.delete(jobId);
 	}
 }
 
@@ -93,20 +117,32 @@ export const POST: RequestHandler = async ({ request }) => {
 	const file = formData.get('file') as File | null;
 	if (!file || file.type !== 'application/pdf') error(400, 'PDF file required');
 
-	// Create job row
+	// Create paper row first (empty — summary filled in by background job)
+	const paperId = crypto.randomUUID();
+	await db.insert(paper).values({
+		id: paperId,
+		userId: session.user.id,
+		name: file.name,
+	});
+
+	// Create job row linked to paper
 	const jobId = crypto.randomUUID();
 	await db.insert(job).values({
 		id: jobId,
 		userId: session.user.id,
 		status: 'pending',
+		paperId,
 	});
 
 	// Start processing in background (no await)
 	const fileBuffer = await file.arrayBuffer();
-	processUpload(jobId, session.user.id, file, fileBuffer).catch((err) => {
+	const controller = new AbortController();
+	activeJobs.set(jobId, controller);
+
+	processUpload(jobId, paperId, session.user.id, file, fileBuffer, controller.signal).catch((err) => {
 		console.error('Background upload failed:', err);
 	});
 
-	// Return immediately with job ID
-	return json({ jobId });
+	// Return immediately with job ID and paper ID
+	return json({ jobId, paperId });
 };

@@ -1,6 +1,6 @@
 import { json, error } from '@sveltejs/kit';
 import { requireSession } from '$lib/server/auth';
-import { createRagAgent } from '$lib/server/llm';
+import { checkLlmHealth, createRagAgent } from '$lib/server/llm';
 import { HumanMessage, AIMessage } from '@langchain/core/messages';
 import type { RequestHandler } from '@sveltejs/kit';
 
@@ -12,6 +12,9 @@ export const POST: RequestHandler = async ({ request }) => {
 		messages: { role: 'user' | 'ai'; text: string }[];
 	};
 	if (!paperId) error(400, 'paperId required');
+
+	const healthy = await checkLlmHealth();
+	if (!healthy) error(503, 'LLM service unavailable');
 
 	const { agent, vectorStore } = await createRagAgent(paperId);
 

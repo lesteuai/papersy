@@ -3,15 +3,8 @@
 	import SummaryView from './SummaryView.svelte';
 	import ChatView from './ChatView.svelte';
 	import ChatInput from './ChatInput.svelte';
-	import type { ChatMessage, Mode } from './types';
+	import type { ChatMessage, Mode, SummaryData } from '$lib/utils/types';
 
-	type SummaryData = {
-		summary: string;
-		keyFindings: string[];
-		methodology: string;
-		limitations: string;
-		references: string[];
-	};
 
 	let {
 		mode,
@@ -19,7 +12,8 @@
 		summaryData,
 		onBack,
 		onModeChange,
-		onSend
+		onSend,
+		disabled = false
 	}: {
 		mode: Mode;
 		messages: ChatMessage[];
@@ -27,6 +21,7 @@
 		onBack: () => void;
 		onModeChange: (m: Mode) => void;
 		onSend: (text: string) => void;
+		disabled?: boolean;
 	} = $props();
 </script>
 
@@ -39,14 +34,18 @@
 			<button
 				class="tab"
 				class:active={mode === 'summary'}
+				class:disabled
 				onclick={() => onModeChange('summary')}
+				{disabled}
 			>
 				Summary
 			</button>
 			<button
 				class="tab"
 				class:active={mode === 'chat'}
+				class:disabled
 				onclick={() => onModeChange('chat')}
+				{disabled}
 			>
 				Chat
 			</button>
@@ -63,7 +62,7 @@
 
 	<ChatInput
 		onSend={onSend}
-		oninput={() => onModeChange('chat')}
+		{disabled}
 	/>
 </div>
 
@@ -127,6 +126,13 @@
 			color: var(--color--primary);
 			background-color: rgba(var(--color--primary-rgb), 0.1);
 			font-weight: 600;
+		}
+
+		&:disabled,
+		&.disabled {
+			opacity: 0.5;
+			cursor: not-allowed;
+			pointer-events: none;
 		}
 	}
 

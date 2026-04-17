@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Button from '$lib/components/atoms/Button.svelte';
 	import FileListItem from './FileListItem.svelte';
-	import type { PapersyFile } from './types';
+	import type { PapersyFile } from '$lib/utils/types';
 
 	let {
 		files,
@@ -72,6 +72,13 @@
 	.panel-header {
 		padding: 12px;
 		border-bottom: 1px solid rgba(var(--color--text-rgb), 0.1);
+		display: flex;
+		justify-content: center;
+
+		:global(button) {
+			width: 50%;
+			font-size: 1rem !important;
+		}
 	}
 
 	.hidden-input {

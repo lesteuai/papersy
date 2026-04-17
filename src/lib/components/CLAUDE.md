@@ -25,12 +25,12 @@ Import via `$lib/components/{layer}/ComponentName.svelte` or `$lib/components/de
 | Logo | atom | animated | — | |
 | LoginCard | dedicated/app | `onLogin: (email, password) => Promise<string \| null>` | — | async; shows error + loading state |
 | FilePanel | dedicated/app | files, selectedFileId, uploading?, onUpload, onSelect, onDelete | — | uploading disables button |
-| FileListItem | dedicated/app | file, selected, onSelect, onDelete | — | |
+| FileListItem | dedicated/app | file, selected, onSelect, onDelete | — | Shows spinner when `file.jobStatus` is pending/processing |
 | SummaryView | dedicated/app | `data: SummaryData \| null` | — | |
-| ChatMessage | dedicated/app | `message: ChatMessage` | — | |
+| ChatMessage | dedicated/app | `message: ChatMessage` | — | Renders animated dots when `message.loading` is true |
 | ChatView | dedicated/app | `messages: ChatMessage[]` | — | |
-| ChatInput | dedicated/app | onSend, oninput? | — | |
-| ContentPanel | dedicated/app | mode, messages, summaryData, onBack, onModeChange, onSend | — | |
+| ChatInput | dedicated/app | onSend, disabled? | — | |
+| ContentPanel | dedicated/app | mode, messages, summaryData, onBack, onModeChange, onSend, disabled? | — | |
 
 ---
 
@@ -111,13 +111,7 @@ Static top nav. Position: static.
 
 Page-specific components for the Papersy app. Import via `$lib/components/dedicated/app/ComponentName.svelte`.
 
-Types are defined in `$lib/components/dedicated/app/types.ts`:
-```ts
-type SummaryData = { summary, keyFindings: string[], methodology, limitations, references: string[] }
-type PapersyFile = { id: string; name: string; summaryData?: SummaryData }
-type ChatMessage = { role: 'user' | 'ai'; text: string }
-type Mode = 'summary' | 'chat'
-```
+Types are defined in `$lib/utils/types.ts`: `SummaryData`, `PapersyFile`, `ChatMessage`, `Mode`
 
 ---
 
@@ -164,6 +158,7 @@ Single file row with delete dropdown.
 | `onDelete` | `(id: string) => void` |
 
 Renders filename as button, `[...]` dropdown menu with Delete option. Menu closes on click-outside.
+- When `file.jobStatus === 'pending' | 'processing'` — shows a CSS spinner next to the filename
 
 ---
 
@@ -179,13 +174,15 @@ Shows placeholder when `data` is null. `flex: 1`, `overflow-y: auto`.
 ---
 
 ### ChatMessage
-Single message bubble.
+Single message bubble. AI messages render markdown-formatted HTML; user messages are plain text.
 
 | Prop | Type |
 |---|---|
 | `message` | `ChatMessage` |
 
-User: right-aligned, primary background. AI: left-aligned, card background.
+User: right-aligned, primary background, plain text. AI: left-aligned, card background, markdown as formatted HTML.
+- When `message.loading` is true — renders three animated bouncing dots instead of message text
+- AI messages parsed with `marked.parse()` and rendered with `{@html}`, styled with `:global()` rules for headings, lists, code blocks, blockquotes, links, etc.
 
 ---
 
@@ -206,9 +203,9 @@ Textarea + send button.
 | Prop | Type |
 |---|---|
 | `onSend` | `(text: string) => void` |
-| `oninput?` | `() => void` |
+| `disabled?` | `boolean` |
 
-Auto-growing textarea. Enter submits, Shift+Enter newline. Optional `oninput` for external side effects (e.g., auto-switch to chat mode).
+Enter submits, Shift+Enter newline. When `disabled` — textarea and send button are disabled with reduced opacity.
 
 ---
 
@@ -223,6 +220,7 @@ Full right-side panel: mode toggle + content view + chat input.
 | `onBack` | `() => void` |
 | `onModeChange` | `(mode: 'summary' \| 'chat') => void` |
 | `onSend` | `(text: string) => void` |
+| `disabled?` | `boolean` |
 
 Back button (mobile), Summary/Chat tabs, content area (SummaryView or ChatView), ChatInput pinned at bottom.
-`ChatInput.oninput` calls `onModeChange('chat')` to auto-switch when user starts typing.
+When `disabled` — mode tabs and ChatInput are disabled (e.g., while paper is being processed).

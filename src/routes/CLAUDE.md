@@ -18,9 +18,9 @@ src/routes/
 │
 └── api/
     ├── auth/[...all]/+server.ts  ← GET/POST catch-all for better-auth
-    ├── upload/+server.ts         ← POST: submit PDF, return jobId (async)
+    ├── upload/+server.ts         ← POST: submit PDF, return { jobId, paperId } (async)
     ├── jobs/[id]/+server.ts      ← GET: poll job status
-    ├── chat/+server.ts           ← POST: RAG agent with history
+    ├── chat/+server.ts           ← POST: RAG agent, passes only last message
     └── papers/[id]/+server.ts    ← GET: fetch paper; DELETE: paper + cascading cleanup
 
 (src/hooks.server.ts at project root handles auth per-request)
@@ -48,7 +48,7 @@ In SPA mode, `load()` runs on the client and returns `{ papers: PapersyFile[], l
 - Calls API endpoints to fetch data (since database is not directly accessible client-side)
 - Checks session status via API
 - If no session: `{ papers: [], loggedIn: false }`
-- If session: calls an API endpoint to fetch papers and their references, returns as `PapersyFile[]` with populated `summaryData`
+- If session: fetches all papers with references, then queries active jobs (pending/processing) for this user; returns `PapersyFile[]` with `jobId` and `jobStatus` populated for papers that are still processing
 
 **`+page.svelte`** — App shell
 
@@ -71,13 +71,27 @@ In SPA mode, `load()` runs on the client and returns `{ papers: PapersyFile[], l
 
 ```ts
 let { data } = $props();                        // from +page.server.ts
-onMount(() => { if (data.loggedIn) loggedIn.set(true); });
+onMount(() => {
+  if (data.loggedIn) loggedIn.set(true);
+  if (data.papers) {
+    files = data.papers;
+    // Resume polling for any in-progress jobs loaded from server
+    for (const p of data.papers) {
+      if (p.jobId && (p.jobStatus === 'pending' || p.jobStatus === 'processing')) {
+        jobsInProgress[p.id] = { jobId: p.jobId, status: p.jobStatus };
+        pollJobStatus(p.id, p.jobId);
+      }
+    }
+  }
+});
 
-let files = $state(data.papers ?? []);          // PapersyFile[]
+let files: PapersyFile[] = $state([]);          // includes jobId/jobStatus for in-progress papers
 let selectedFileId = $state(null);
 let selectedFile = $derived(files.find(f => f.id === selectedFileId));
+let jobsInProgress = $state({});               // Record<paperId, { jobId, status, error? }>
+let isProcessing = $derived(...);              // true if selectedFile has active job
 let mode = $state('summary');                   // 'summary' | 'chat'
-let messages = $state([]);                      // ChatMessage[]
+let messages = $state([]);                      // ChatMessage[] — includes loading?: boolean
 let uploading = $state(false);
 let mobileActivePanel = $state('files');        // 'files' | 'content'
 ```
@@ -87,11 +101,11 @@ let mobileActivePanel = $state('files');        // 'files' | 'content'
 | Handler | What it does |
 |---|---|
 | `handleLogin(email, password)` | `getAuthClient()!.signIn.email(...)`, sets loggedIn |
-| `handleUpload(file)` | POST `/api/upload`, receives jobId, polls `/api/jobs/:id`, appends paper when done |
-| `handleSelect(id)` | sets selectedFileId, switches mobile panel |
-| `handleDelete(id)` | DELETE `/api/papers/:id`, removes from files (checks response status) |
-| `handleSend(text)` | POST `/api/chat` with history, appends AI reply |
-| `handleBack()` | toggles mobile panel to files |
+| `handleUpload(file)` | POST `/api/upload`, receives `{ jobId, paperId }`, adds paper with `jobStatus: 'pending'`, starts polling |
+| `handleSelect(id)` | Sets selectedFileId; resets mode+messages when switching files; sets `mobileActivePanel = 'content'` always |
+| `handleDelete(id)` | DELETE `/api/papers/:id`, removes from files, stops polling for that job |
+| `handleSend(text)` | Adds user message + AI loading message, POST `/api/chat`, replaces loading with response |
+| `handleBack()` | Resets mode+messages, toggles mobile panel to files (or clears selectedFileId on desktop) |
 
 ---
 
@@ -103,21 +117,22 @@ let mobileActivePanel = $state('files');        // 'files' | 'content'
 
 **Response (202 Accepted):**
 ```json
-{ "jobId": "uuid" }
+{ "jobId": "uuid", "paperId": "uuid" }
 ```
 
 **Pipeline:**
 1. Auth check (401 if no session)
 2. Validate PDF (400 if not PDF)
-3. Create `job` row with `status: "pending"`, return `jobId` immediately (202)
-4. **Background task** (async, no await):
-   - Update job to `status: "processing"`
+3. Create empty `paper` row (name + userId only, no summary yet)
+4. Create `job` row with `status: "pending"` linked to `paperId`; return both IDs immediately
+5. **Background task** (async, no await):
+   - LLM health check — marks job failed immediately if LLM unreachable
    - `new PDFParse({ data: buffer }).getText()` → extract text (pdf-parse v2.x class API)
    - `ChatOpenAI.withStructuredOutput(SummarySchema)` → structured summary
-   - Insert `paper` row (userId FK)
+   - UPDATE `paper` row with summary data (does not insert a new row)
    - Insert `reference` rows (one per reference)
    - Split text (1000 chars / 200 overlap) → embed → insert into `documents` with `{ paperId }` metadata
-   - Update job to `status: "done"` with `paperId`, or `status: "failed"` with error message
+   - Update job to `status: "done"`, or `status: "failed"` with error message
 
 ---
 
@@ -151,11 +166,12 @@ let mobileActivePanel = $state('files');        // 'files' | 'content'
 **Pipeline:**
 1. Auth check (401)
 2. Validate paperId (400)
-3. `createRagAgent(paperId)` — retrieve tool filtered by paperId metadata
-4. Map messages to LangChain `HumanMessage`/`AIMessage`
-5. `agent.invoke({ messages: [systemPrompt, ...history] })`
-6. `vectorStore.end()`
-7. Return last message text
+3. LLM health check — 503 if unavailable
+4. `createRagAgent(paperId)` — retrieve tool filtered by paperId metadata
+5. Map messages to LangChain `HumanMessage`/`AIMessage`
+6. `agent.invoke({ messages: [history.at(-1)!] })` — passes only the last user message
+7. `vectorStore.end()`
+8. Return last message text from result
 
 ---
 
