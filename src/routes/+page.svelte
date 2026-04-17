@@ -160,7 +160,6 @@
 				jobStatus: 'pending',
 			},
 		];
-		selectedFileId = paperId;
 
 		// Track job and start polling
 		jobsInProgress[paperId] = { jobId, status: 'pending' };
