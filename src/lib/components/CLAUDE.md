@@ -111,13 +111,7 @@ Static top nav. Position: static.
 
 Page-specific components for the Papersy app. Import via `$lib/components/dedicated/app/ComponentName.svelte`.
 
-Types are defined in `$lib/components/dedicated/app/types.ts`:
-```ts
-type SummaryData = { summary, keyFindings: string[], methodology, limitations, references: string[] }
-type PapersyFile = { id: string; name: string; summaryData?: SummaryData; jobId?: string; jobStatus?: string }
-type ChatMessage = { role: 'user' | 'ai'; text: string; loading?: boolean }
-type Mode = 'summary' | 'chat'
-```
+Types are defined in `$lib/utils/types.ts`: `SummaryData`, `PapersyFile`, `ChatMessage`, `Mode`
 
 ---
 

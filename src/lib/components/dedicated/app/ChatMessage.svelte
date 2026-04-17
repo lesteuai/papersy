@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { ChatMessage } from './types';
+	import type { ChatMessage } from '$lib/utils/types';
 
 	let { message }: { message: ChatMessage } = $props();
 </script>

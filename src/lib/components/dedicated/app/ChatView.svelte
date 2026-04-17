@@ -1,6 +1,6 @@
 <script lang="ts">
 	import ChatMessageComponent from './ChatMessage.svelte';
-	import type { ChatMessage } from './types';
+	import type { ChatMessage } from '$lib/utils/types';
 
 	let { messages }: { messages: ChatMessage[] } = $props();
 

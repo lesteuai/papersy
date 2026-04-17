@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PapersyFile } from './types';
+	import type { PapersyFile } from '$lib/utils/types';
 
 	let {
 		file,

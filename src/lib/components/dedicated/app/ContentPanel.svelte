@@ -3,15 +3,8 @@
 	import SummaryView from './SummaryView.svelte';
 	import ChatView from './ChatView.svelte';
 	import ChatInput from './ChatInput.svelte';
-	import type { ChatMessage, Mode } from './types';
+	import type { ChatMessage, Mode, SummaryData } from '$lib/utils/types';
 
-	type SummaryData = {
-		summary: string;
-		keyFindings: string[];
-		methodology: string;
-		limitations: string;
-		references: string[];
-	};
 
 	let {
 		mode,

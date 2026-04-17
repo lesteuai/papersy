@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Button from '$lib/components/atoms/Button.svelte';
 	import FileListItem from './FileListItem.svelte';
-	import type { PapersyFile } from './types';
+	import type { PapersyFile } from '$lib/utils/types';
 
 	let {
 		files,

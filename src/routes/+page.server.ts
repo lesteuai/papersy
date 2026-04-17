@@ -3,7 +3,7 @@ import { db } from '$lib/server/db';
 import { paper, reference, job } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
-import type { PapersyFile } from '$lib/components/dedicated/app/types';
+import type { PapersyFile } from '$lib/utils/types';
 
 export const load: PageServerLoad = async ({ request }) => {
 	const session = await auth.api.getSession({ headers: request.headers });

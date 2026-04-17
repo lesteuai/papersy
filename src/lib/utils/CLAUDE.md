@@ -75,6 +75,46 @@ Full shape of a processed blog post. Returned by `importPosts` / `filterPosts`.
 }
 ```
 
+### `SummaryData`
+Summary extracted from a research paper by the LLM. Used by `src/routes/+page.svelte` and content panels.
+```ts
+{
+  summary: string
+  keyFindings: string[]
+  methodology: string
+  limitations: string
+  references: string[]
+}
+```
+
+### `PapersyFile`
+Frontend representation of a paper file with metadata and job tracking. Used throughout the app UI.
+```ts
+{
+  id: string
+  name: string
+  summaryData?: SummaryData
+  jobId?: string                         // UUID of the processing job
+  jobStatus?: string                     // 'pending' | 'processing' | 'failed' | undefined (done)
+}
+```
+
+### `ChatMessage`
+Single message in a conversation. Used by chat components.
+```ts
+{
+  role: 'user' | 'ai'
+  text: string
+  loading?: boolean                      // true: render animated dots instead of text
+}
+```
+
+### `Mode`
+Page content mode — determines which view to show.
+```ts
+type Mode = 'summary' | 'chat'
+```
+
 ---
 
 ## regex.ts

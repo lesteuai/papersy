@@ -6,7 +6,7 @@
 	import LoginCard from '$lib/components/dedicated/app/LoginCard.svelte';
 	import FilePanel from '$lib/components/dedicated/app/FilePanel.svelte';
 	import ContentPanel from '$lib/components/dedicated/app/ContentPanel.svelte';
-	import type { PapersyFile, ChatMessage, Mode } from '$lib/components/dedicated/app/types';
+	import type { PapersyFile, ChatMessage, Mode } from '$lib/utils/types';
 
 	const pollTimeout = 5000;
 
