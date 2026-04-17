@@ -33,7 +33,7 @@ Server-side configuration (`.env`):
   - `api/auth/[...all]/+server.ts` — better-auth handler
   - `api/upload/+server.ts` — PDF upload, summarize, vectorize
   - `api/chat/+server.ts` — RAG-based chat
-  - `api/papers/[id]/+server.ts` — paper deletion
+  - `api/papers/[id]/+server.ts` — paper GET (details) and DELETE
 - **[src/lib/](src/lib/CLAUDE.md)** — Shared library code
   - [components/](src/lib/components/CLAUDE.md) — Atomic Design system (~40 components)
   - [icons/](src/lib/icons/CLAUDE.md) — SVG icon library
@@ -54,11 +54,24 @@ Server-side configuration (`.env`):
 **Database**: PostgreSQL with Drizzle ORM
 - Schema: `user`, `session`, `account`, `verification` (auth tables, auto-generated)
 - Schema: `paper`, `reference` (content), `documents` (pgvector table, managed by PGVectorStore)
+- Schema: `job` (upload job tracking; statuses: pending/processing/done/failed/cancelled)
 
 **LLM & RAG**: LangChain orchestration
-- `ChatOpenAI` for summarization (with Zod schema validation)
+- `ChatOpenAI` with `temperature: 0.7` for conversational chat responses
 - `OpenAIEmbeddings` for vector generation
 - `PGVectorStore` (`tableName: "documents"`) for similarity search
+- RAG agent receives full conversation history for coherent multi-turn chat
+- AI chat responses rendered as markdown HTML via `marked` library
+
+**Upload Processing**: Background job with cancellation support
+- `src/lib/server/upload-jobs.ts` holds a module-level `Map<jobId, AbortController>`
+- `processUpload()` checks `signal.aborted` at each major step (PDF extraction, summarization, vectorization)
+- Paper deletion aborts any active upload job for that paper
+
+**Data Loading**: Lazy and incremental
+- Initial page load fetches only basic paper info (`id`, `name`, `jobStatus`) -- no summary fields
+- Full `summaryData` fetched on-demand via `GET /api/papers/[id]` when user clicks a paper
+- Upload no longer auto-selects the new paper; current selection is preserved
 
 **Styling & Theming**: CSS-driven via `data-theme` attribute on `<html>`
 
