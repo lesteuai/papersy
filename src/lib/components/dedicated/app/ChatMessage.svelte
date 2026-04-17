@@ -112,6 +112,8 @@
 			word-break: break-word;
 		}
 
+		// :global() is required because marked.parse() injects raw HTML via {@html},
+		// which Svelte's scoped CSS cannot reach without escaping the component scope.
 		.markdown-content :global(h1),
 		.markdown-content :global(h2),
 		.markdown-content :global(h3),

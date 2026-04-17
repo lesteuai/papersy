@@ -15,13 +15,15 @@ import type { RequestHandler } from '@sveltejs/kit';
 
 const PROMPT_PATH = path.resolve('prompts', 'summarize_prompt.txt');
 
+class AbortedError extends Error {}
+
+function throwIfAborted(signal: AbortSignal) {
+	if (signal.aborted) throw new AbortedError();
+}
+
 async function processUpload(jobId: string, paperId: string, userId: string, file: File, fileBuffer: ArrayBuffer, signal: AbortSignal) {
 	try {
-		// Check if job was cancelled before starting
-		if (signal.aborted) {
-			await db.update(job).set({ status: 'cancelled' }).where(eq(job.id, jobId));
-			return;
-		}
+		throwIfAborted(signal);
 
 		const healthy = await checkLlmHealth();
 		if (!healthy) {
@@ -29,11 +31,7 @@ async function processUpload(jobId: string, paperId: string, userId: string, fil
 			return;
 		}
 
-		// Check if job was cancelled before extracting PDF
-		if (signal.aborted) {
-			await db.update(job).set({ status: 'cancelled' }).where(eq(job.id, jobId));
-			return;
-		}
+		throwIfAborted(signal);
 
 		// Extract text from PDF
 		const buffer = Buffer.from(fileBuffer);
@@ -42,11 +40,7 @@ async function processUpload(jobId: string, paperId: string, userId: string, fil
 		const paperText = textResult.text;
 		await parser.destroy();
 
-		// Check if job was cancelled before summarizing
-		if (signal.aborted) {
-			await db.update(job).set({ status: 'cancelled' }).where(eq(job.id, jobId));
-			return;
-		}
+		throwIfAborted(signal);
 
 		// Summarize
 		const systemPrompt = await fs.readFile(PROMPT_PATH, 'utf-8');
@@ -83,11 +77,7 @@ async function processUpload(jobId: string, paperId: string, userId: string, fil
 			);
 		}
 
-		// Check if job was cancelled before vectorizing
-		if (signal.aborted) {
-			await db.update(job).set({ status: 'cancelled' }).where(eq(job.id, jobId));
-			return;
-		}
+		throwIfAborted(signal);
 
 		// Vectorize — split and index
 		const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 1000, chunkOverlap: 200 });
@@ -105,6 +95,10 @@ async function processUpload(jobId: string, paperId: string, userId: string, fil
 			.set({ status: 'done' })
 			.where(eq(job.id, jobId));
 	} catch (err) {
+		if (err instanceof AbortedError) {
+			await db.update(job).set({ status: 'cancelled' }).where(eq(job.id, jobId));
+			return;
+		}
 		const errorMessage = err instanceof Error ? err.message : 'Unknown error';
 		await db
 			.update(job)
