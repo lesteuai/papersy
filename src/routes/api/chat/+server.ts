@@ -22,7 +22,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		m.role === 'user' ? new HumanMessage(m.text) : new AIMessage(m.text)
 	);
 
-	const result = await agent.invoke({ messages: [history.at(-1)!] });
+	const result = await agent.invoke({ messages: history });
 
 	await vectorStore.end();
 
