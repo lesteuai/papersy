@@ -4,6 +4,7 @@ import { db } from '$lib/server/db';
 import { paper, reference, job } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import { getVectorStore, getLlm, SummarySchema, checkLlmHealth } from '$lib/server/llm';
+import { activeJobs } from '$lib/server/upload-jobs';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
 import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters';
 import { Document } from '@langchain/core/documents';
@@ -14,11 +15,23 @@ import type { RequestHandler } from '@sveltejs/kit';
 
 const PROMPT_PATH = path.resolve('prompts', 'summarize_prompt.txt');
 
-async function processUpload(jobId: string, paperId: string, userId: string, file: File, fileBuffer: ArrayBuffer) {
+async function processUpload(jobId: string, paperId: string, userId: string, file: File, fileBuffer: ArrayBuffer, signal: AbortSignal) {
 	try {
+		// Check if job was cancelled before starting
+		if (signal.aborted) {
+			await db.update(job).set({ status: 'cancelled' }).where(eq(job.id, jobId));
+			return;
+		}
+
 		const healthy = await checkLlmHealth();
 		if (!healthy) {
 			await db.update(job).set({ status: 'failed', error: 'LLM service unavailable' }).where(eq(job.id, jobId));
+			return;
+		}
+
+		// Check if job was cancelled before extracting PDF
+		if (signal.aborted) {
+			await db.update(job).set({ status: 'cancelled' }).where(eq(job.id, jobId));
 			return;
 		}
 
@@ -28,6 +41,12 @@ async function processUpload(jobId: string, paperId: string, userId: string, fil
 		const textResult = await parser.getText();
 		const paperText = textResult.text;
 		await parser.destroy();
+
+		// Check if job was cancelled before summarizing
+		if (signal.aborted) {
+			await db.update(job).set({ status: 'cancelled' }).where(eq(job.id, jobId));
+			return;
+		}
 
 		// Summarize
 		const systemPrompt = await fs.readFile(PROMPT_PATH, 'utf-8');
@@ -64,6 +83,12 @@ async function processUpload(jobId: string, paperId: string, userId: string, fil
 			);
 		}
 
+		// Check if job was cancelled before vectorizing
+		if (signal.aborted) {
+			await db.update(job).set({ status: 'cancelled' }).where(eq(job.id, jobId));
+			return;
+		}
+
 		// Vectorize — split and index
 		const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 1000, chunkOverlap: 200 });
 		const docs = await splitter.splitDocuments([
@@ -85,6 +110,9 @@ async function processUpload(jobId: string, paperId: string, userId: string, fil
 			.update(job)
 			.set({ status: 'failed', error: errorMessage })
 			.where(eq(job.id, jobId));
+	} finally {
+		// Clean up the abort controller from the map
+		activeJobs.delete(jobId);
 	}
 }
 
@@ -114,7 +142,10 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	// Start processing in background (no await)
 	const fileBuffer = await file.arrayBuffer();
-	processUpload(jobId, paperId, session.user.id, file, fileBuffer).catch((err) => {
+	const controller = new AbortController();
+	activeJobs.set(jobId, controller);
+
+	processUpload(jobId, paperId, session.user.id, file, fileBuffer, controller.signal).catch((err) => {
 		console.error('Background upload failed:', err);
 	});
 
