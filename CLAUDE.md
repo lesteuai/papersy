@@ -72,11 +72,14 @@ Server-side configuration (`.env`):
 - Paper deletion aborts any active upload job for that paper
 - PDF text is cleaned of page markers (`-- N of M --`) before being sent to the LLM
 - `parser.destroy()` and `vectorStore.end()` are called in `finally` blocks to ensure cleanup even on error
+- Large PDF handling: when extracted text exceeds 60,000 chars (`SUMMARIZE_CHUNK_THRESHOLD`), map-reduce is used -- text is split into 12,000-char chunks, each summarized as plain text via `default-prompts/chunk-summarize.txt`, then the combined summaries are fed to the structured output chain
+- On job failure, error message is stored in `job.error` and preserved in `PapersyFile.uploadError` so the UI can display the reason
 
 **Data Loading**: Lazy and incremental
 - Initial page load fetches only basic paper info (`id`, `name`, `jobStatus`) -- no summary fields
 - Full `summaryData` fetched on-demand via `GET /api/papers/[id]` when user clicks a paper
 - Upload no longer auto-selects the new paper; current selection is preserved
+- Failed papers display error reason in Summary tab; Chat tab is locked until paper is deleted and re-uploaded
 
 **Styling & Theming**: CSS-driven via `data-theme` attribute on `<html>`
 
