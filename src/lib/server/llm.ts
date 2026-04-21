@@ -51,7 +51,6 @@ export function getEmbeddings() {
 export function getLlm() {
 	return new ChatOpenAI({
 		model: 'local',
-		temperature: 0.7,
 		configuration: {
 			baseURL: env.CHAT_MODEL_URL,
 			apiKey: env.CHAT_MODEL_API_KEY,

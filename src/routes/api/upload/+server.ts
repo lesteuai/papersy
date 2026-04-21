@@ -43,6 +43,12 @@ async function processUpload(jobId: string, paperId: string, userId: string, fil
 
 		throwIfAborted(signal);
 
+		// Update job status to processing
+		await db
+			.update(job)
+			.set({ status: 'processing' })
+			.where(eq(job.id, jobId));
+		
 		// Summarize
 		const llm = getLlm();
 		const prompt = ChatPromptTemplate.fromMessages([
@@ -51,12 +57,6 @@ async function processUpload(jobId: string, paperId: string, userId: string, fil
 		]);
 		const chain = prompt.pipe(llm.withStructuredOutput(SummarySchema));
 		const result = await chain.invoke({ systemPrompt, paperText });
-
-		// Update job status to processing
-		await db
-			.update(job)
-			.set({ status: 'processing' })
-			.where(eq(job.id, jobId));
 
 		// Update paper row with summary data
 		await db.update(paper).set({
