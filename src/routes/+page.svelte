@@ -28,12 +28,14 @@
 
 	// Job tracking — map of placeholder file ID -> { jobId, status, error? }
 	let jobsInProgress: Record<string, { jobId: string; status: string; error?: string }> = $state({});
-	
+
 	let isProcessing = $derived(
 		selectedFileId && jobsInProgress[selectedFileId]
 			? ['pending', 'processing'].includes(jobsInProgress[selectedFileId].status)
 			: false
 	);
+
+	let selectedUploadError = $derived(selectedFile?.uploadError ?? null);
 
 	// Content state
 	let mode: Mode = $state('summary');
@@ -117,7 +119,7 @@
 					// Job failed
 					files = files.map((f) =>
 						f.id === paperId
-							? { ...f, name: `${f.name} (Failed)`, jobId: undefined, jobStatus: undefined }
+							? { ...f, jobStatus: 'failed', uploadError: jobData.error ?? 'Unknown error', jobId: undefined }
 							: f
 					);
 					delete jobsInProgress[paperId];
@@ -263,6 +265,7 @@
 					onModeChange={(m) => (mode = m)}
 					onSend={handleSend}
 					disabled={isProcessing}
+					uploadError={selectedUploadError}
 				/>
 			</div>
 		{/if}

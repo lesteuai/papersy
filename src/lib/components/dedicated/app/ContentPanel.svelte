@@ -13,7 +13,8 @@
 		onBack,
 		onModeChange,
 		onSend,
-		disabled = false
+		disabled = false,
+		uploadError = undefined
 	}: {
 		mode: Mode;
 		messages: ChatMessage[];
@@ -22,7 +23,10 @@
 		onModeChange: (m: Mode) => void;
 		onSend: (text: string) => void;
 		disabled?: boolean;
+		uploadError?: string;
 	} = $props();
+
+	let chatDisabled = $derived(disabled || (uploadError ? true : false));
 </script>
 
 <div class="content-panel">
@@ -43,9 +47,9 @@
 			<button
 				class="tab"
 				class:active={mode === 'chat'}
-				class:disabled
+				class:disabled={chatDisabled}
 				onclick={() => onModeChange('chat')}
-				{disabled}
+				disabled={chatDisabled}
 			>
 				Chat
 			</button>
@@ -54,7 +58,7 @@
 
 	<div class="panel-body">
 		{#if mode === 'summary'}
-			<SummaryView data={summaryData} />
+			<SummaryView data={summaryData} error={uploadError} />
 		{:else}
 			<ChatView {messages} />
 		{/if}
@@ -62,7 +66,7 @@
 
 	<ChatInput
 		onSend={onSend}
-		{disabled}
+		disabled={chatDisabled}
 	/>
 </div>
 

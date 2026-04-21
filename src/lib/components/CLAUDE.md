@@ -168,8 +168,9 @@ Scrollable summary with 5 sections: Summary, Key Findings, Methodology, Limitati
 | Prop | Type |
 |---|---|
 | `data` | `SummaryData \| null` |
+| `error?` | `string` |
 
-Shows placeholder when `data` is null. `flex: 1`, `overflow-y: auto`.
+Shows placeholder when `data` is null and no error. When `error` is set, displays the error message with error styling (red background and text). `flex: 1`, `overflow-y: auto`.
 
 ---
 
@@ -221,6 +222,8 @@ Full right-side panel: mode toggle + content view + chat input.
 | `onModeChange` | `(mode: 'summary' \| 'chat') => void` |
 | `onSend` | `(text: string) => void` |
 | `disabled?` | `boolean` |
+| `uploadError?` | `string` |
 
 Back button (mobile), Summary/Chat tabs, content area (SummaryView or ChatView), ChatInput pinned at bottom.
-When `disabled` — mode tabs and ChatInput are disabled (e.g., while paper is being processed).
+- `disabled` — disables both Summary and Chat tabs and ChatInput (e.g., while paper is being processed)
+- `uploadError` — when set, Summary tab stays enabled (shows error), but Chat tab and ChatInput are disabled. Passed to SummaryView as `error` prop.

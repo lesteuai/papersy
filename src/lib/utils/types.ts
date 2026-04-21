@@ -12,6 +12,7 @@ export type PapersyFile = {
 	summaryData?: SummaryData;
 	jobId?: string;
 	jobStatus?: string; // 'pending' | 'processing' | 'failed' | undefined (done)
+	uploadError?: string;
 };
 
 export type ChatMessage = {
