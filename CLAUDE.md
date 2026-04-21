@@ -13,11 +13,14 @@
 
 Server-side configuration (`.env`):
 - `DATABASE_URL` — PostgreSQL connection string
-- `ORIGIN` — Server origin for CORS and auth redirects
+- `ORIGIN` — Production server origin for CORS and auth redirects
+- `ORIGIN_DEV` — Development server origin (used when `NODE_ENV` is not `production`; falls back to `ORIGIN`)
 - `BETTER_AUTH_SECRET` — Secret key for better-auth session signing
 - `PG_HOST`, `PG_PORT`, `PG_USER`, `PG_PASSWORD`, `PG_DATABASE` — PostgreSQL connection details
 - `CHAT_MODEL_URL` — OpenAI-compatible LLM endpoint (e.g., local Ollama at `http://localhost:11434/v1`)
 - `EMBEDDING_URL` — OpenAI-compatible embedding endpoint
+- `EMBEDDING_URL_KEY` — API key for the embedding endpoint (use `local` for local models)
+- `BODY_SIZE_LIMIT` — SvelteKit request body size limit (e.g., `100M` for large PDF uploads)
 
 ---
 
@@ -67,6 +70,8 @@ Server-side configuration (`.env`):
 - `src/lib/server/upload-jobs.ts` holds a module-level `Map<jobId, AbortController>`
 - `processUpload()` checks `signal.aborted` at each major step (PDF extraction, summarization, vectorization)
 - Paper deletion aborts any active upload job for that paper
+- PDF text is cleaned of page markers (`-- N of M --`) before being sent to the LLM
+- `parser.destroy()` and `vectorStore.end()` are called in `finally` blocks to ensure cleanup even on error
 
 **Data Loading**: Lazy and incremental
 - Initial page load fetches only basic paper info (`id`, `name`, `jobStatus`) -- no summary fields

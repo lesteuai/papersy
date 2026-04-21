@@ -27,10 +27,10 @@
 
 <div class="file-item" class:selected>
 	<button class="file-name" onclick={() => onSelect(file.id)}>
-		{file.name}
 		{#if file.jobStatus === 'pending' || file.jobStatus === 'processing'}
 			<span class="spinner" aria-label="Processing"></span>
 		{/if}
+		{file.name}
 	</button>
 	<div class="menu-wrapper">
 		<button class="menu-trigger" onclick={() => menuOpen = !menuOpen} aria-label="File options">

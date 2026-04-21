@@ -37,9 +37,14 @@ async function processUpload(jobId: string, paperId: string, userId: string, fil
 		// Extract text from PDF
 		const buffer = Buffer.from(fileBuffer);
 		const parser = new PDFParse({ data: buffer });
-		const textResult = await parser.getText();
-		const paperText = textResult.text;
-		await parser.destroy();
+		let paperText: string;
+		try {
+			const textResult = await parser.getText();
+			paperText = textResult.text;
+			paperText = paperText.replace(/--\s*\d+\s*of\s*\d+\s*--/g, '');
+		} finally {
+			await parser.destroy();
+		}
 
 		throwIfAborted(signal);
 
@@ -86,8 +91,11 @@ async function processUpload(jobId: string, paperId: string, userId: string, fil
 		]);
 
 		const vectorStore = await getVectorStore();
-		await vectorStore.addDocuments(docs);
-		await vectorStore.end();
+		try {
+			await vectorStore.addDocuments(docs);
+		} finally {
+			await vectorStore.end();
+		}
 
 		// Update job to done
 		await db

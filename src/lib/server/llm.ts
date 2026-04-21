@@ -43,7 +43,7 @@ export function getEmbeddings() {
 	return new OpenAIEmbeddings({
 		configuration: {
 			baseURL: env.EMBEDDING_URL,
-			apiKey: 'local',
+			apiKey: env.EMBEDDING_URL_KEY,
 		},
 	});
 }

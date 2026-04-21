@@ -25,6 +25,7 @@ Exports `auth` — the better-auth instance, and `requireSession` — a shared a
 
 **Config:**
 - Database: Drizzle adapter with PostgreSQL
+- Origin: `ORIGIN_DEV` in development (`NODE_ENV !== 'production'`), `ORIGIN` in production
 - Provider: email/password with sign-up limit (100 users max via `beforeSignUp` hook)
 - Features:
   - **Email verification** — `requireEmailVerification: true` forces users to verify email before login
@@ -229,9 +230,11 @@ activeJobs.get(jobId)?.abort();
 | `DATABASE_URL` | `db/index.ts` | PostgreSQL connection string |
 | `PG_HOST/PORT/USER/PASSWORD/DATABASE` | `llm.ts` | Direct PG connection for PGVectorStore |
 | `EMBEDDING_URL` | `llm.ts` | OpenAI-compatible embedding endpoint |
+| `EMBEDDING_URL_KEY` | `llm.ts` | API key for embedding endpoint |
 | `CHAT_MODEL_URL` | `llm.ts` | OpenAI-compatible chat LLM endpoint |
 | `BETTER_AUTH_SECRET` | `auth.ts` | Session signing key (min 32 chars) |
-| `ORIGIN` | `auth.ts` | Server origin for CORS |
+| `ORIGIN` | `auth.ts` | Production server origin for CORS |
+| `ORIGIN_DEV` | `auth.ts` | Dev server origin; used when `NODE_ENV !== 'production'`, falls back to `ORIGIN` |
 
 ---
 
