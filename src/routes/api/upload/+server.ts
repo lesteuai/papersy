@@ -13,7 +13,8 @@ import fs from 'fs/promises';
 import path from 'path';
 import type { RequestHandler } from '@sveltejs/kit';
 
-const PROMPT_PATH = path.resolve('prompts', 'summarize_prompt.txt');
+const PROMPT_PATH = path.resolve('default-prompts', 'summarize.txt');
+const systemPrompt = await fs.readFile(PROMPT_PATH, 'utf-8');
 
 class AbortedError extends Error {}
 
@@ -43,7 +44,6 @@ async function processUpload(jobId: string, paperId: string, userId: string, fil
 		throwIfAborted(signal);
 
 		// Summarize
-		const systemPrompt = await fs.readFile(PROMPT_PATH, 'utf-8');
 		const llm = getLlm();
 		const prompt = ChatPromptTemplate.fromMessages([
 			['system', '{systemPrompt}'],
