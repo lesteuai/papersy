@@ -18,7 +18,7 @@ Two improvements: surface upload failure errors to the user in the Summary tab w
 - Also update `src/lib/components/CLAUDE.md` props tables to reflect the new props on `ContentPanel` and `SummaryView`.
 
 ### Task 2: Map-reduce summarization for large PDFs
-**Status**: pending
+**Status**: done
 **Goal**: When a PDF's extracted text exceeds a size threshold, split it into chunks, summarize each chunk as plain text, then run the structured output extraction on the combined chunk summaries -- so the LLM never receives more than one chunk at a time.
 **Depends on**: none
 **Details**:
