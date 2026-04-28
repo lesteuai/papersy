@@ -11,7 +11,7 @@ export type PapersyFile = {
 	name: string;
 	summaryData?: SummaryData;
 	jobId?: string;
-	jobStatus?: string; // 'pending' | 'processing' | 'failed' | 'done' | 'cancelled'
+	jobStatus?: string; // 'pending' | 'processing' | 'storing' | 'failed' | 'done' | 'cancelled'
 	uploadError?: string | undefined;
 };
 

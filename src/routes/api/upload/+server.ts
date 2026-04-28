@@ -83,6 +83,12 @@ async function processUpload(jobId: string, paperId: string, userId: string, fil
 
 		throwIfAborted(signal);
 
+		// Update job status for vectorizing paper
+		await db
+			.update(job)
+			.set({ status: 'storing' })
+			.where(eq(job.id, jobId));
+
 		// Vectorize — split and index
 		const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 1000, chunkOverlap: 200 });
 		const docs = await splitter.splitDocuments([

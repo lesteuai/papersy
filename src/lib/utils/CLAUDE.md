@@ -95,7 +95,7 @@ Frontend representation of a paper file with metadata and job tracking. Used thr
   name: string
   summaryData?: SummaryData
   jobId?: string                         // UUID of the processing job
-  jobStatus?: string                     // 'pending' | 'processing' | 'failed' | undefined (done)
+  jobStatus?: string                     // 'pending' | 'processing' | 'storing' | 'failed' | 'done' | 'cancelled'
   uploadError?: string                   // Error message when jobStatus === 'failed'
 }
 ```
