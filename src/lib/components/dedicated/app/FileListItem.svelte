@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PapersyFile } from '$lib/utils/types';
+	import WarningIcon from '$lib/icons/warning.svelte';
 
 	let {
 		file,
@@ -29,6 +30,8 @@
 	<button class="file-name" onclick={() => onSelect(file.id)}>
 		{#if file.jobStatus === 'pending' || file.jobStatus === 'processing'}
 			<span class="spinner" aria-label="Processing"></span>
+		{:else if file.jobStatus === 'failed' || file.jobStatus === 'cancelled'}
+			<span class="warning-icon" aria-label="Failed"><WarningIcon /></span>
 		{/if}
 		{file.name}
 	</button>
@@ -98,6 +101,14 @@
 
 	@keyframes spin {
 		to { transform: rotate(360deg); }
+	}
+
+	.warning-icon {
+		display: inline-flex;
+		width: 12px;
+		height: 12px;
+		color: #d97706;
+		flex-shrink: 0;
 	}
 
 	.menu-wrapper {

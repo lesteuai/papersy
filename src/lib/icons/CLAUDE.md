@@ -40,6 +40,7 @@ All standard line icons follow this convention:
 | `pin.svelte` | Map location marker with center dot |
 | `rss.svelte` | RSS feed arcs with a dot |
 | `star.svelte` | Five-pointed star outline |
+| `warning.svelte` | Triangle with exclamation mark -- warning/error state |
 
 ### Exceptions to the standard pattern
 

@@ -50,12 +50,15 @@ Available environment variables:
 
 | Variable | Description |
 |---|---|
-| `DATABASE_URL` | PostgreSQL connection string |
-| `ORIGIN` | Server origin (e.g. `http://localhost:5173`) |
+| `ORIGIN` | Production server origin (e.g. `http://localhost:5173`) |
+| `ORIGIN_DEV` | Development server origin (falls back to `ORIGIN` when unset) |
 | `BETTER_AUTH_SECRET` | Session signing secret (min 32 chars) |
-| `PG_HOST`, `PG_PORT`, `PG_USER`, `PG_PASSWORD`, `PG_DATABASE` | Direct PG connection for pgvector |
+| `PG_HOST`, `PG_PORT`, `PG_USER`, `PG_PASSWORD`, `PG_DATABASE` | PostgreSQL connection details |
 | `CHAT_MODEL_URL` | OpenAI-compatible chat LLM endpoint (e.g., `http://localhost:11434/v1`) |
+| `CHAT_MODEL_API_KEY` | API key for the chat LLM endpoint |
 | `EMBEDDING_URL` | OpenAI-compatible embedding endpoint |
+| `EMBEDDING_URL_KEY` | API key for the embedding endpoint (use `local` for local models) |
+| `BODY_SIZE_LIMIT` | SvelteKit request body size limit (e.g., `100M` for large PDF uploads) |
 
 **4. Push database schema**
 ```sh

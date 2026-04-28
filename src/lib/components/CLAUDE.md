@@ -25,12 +25,12 @@ Import via `$lib/components/{layer}/ComponentName.svelte` or `$lib/components/de
 | Logo | atom | animated | — | |
 | LoginCard | dedicated/app | `onLogin: (email, password) => Promise<string \| null>` | — | async; shows error + loading state |
 | FilePanel | dedicated/app | files, selectedFileId, uploading?, onUpload, onSelect, onDelete | — | uploading disables button |
-| FileListItem | dedicated/app | file, selected, onSelect, onDelete | — | Shows spinner when `file.jobStatus` is pending/processing |
-| SummaryView | dedicated/app | `data: SummaryData \| null` | — | |
+| FileListItem | dedicated/app | file, selected, onSelect, onDelete | — | Shows spinner when `file.jobStatus` is pending/processing; warning icon when failed/cancelled |
+| SummaryView | dedicated/app | `data: SummaryData \| null`, `jobStatus?`, `error?` | — | |
 | ChatMessage | dedicated/app | `message: ChatMessage` | — | Renders animated dots when `message.loading` is true |
 | ChatView | dedicated/app | `messages: ChatMessage[]` | — | |
 | ChatInput | dedicated/app | onSend, disabled? | — | |
-| ContentPanel | dedicated/app | mode, messages, summaryData, onBack, onModeChange, onSend, disabled? | — | |
+| ContentPanel | dedicated/app | mode, messages, summaryData, onBack, onModeChange, onSend, disabled?, jobStatus?, uploadError? | — | |
 
 ---
 
@@ -159,6 +159,7 @@ Single file row with delete dropdown.
 
 Renders filename as button, `[...]` dropdown menu with Delete option. Menu closes on click-outside.
 - When `file.jobStatus === 'pending' | 'processing'` — shows a CSS spinner next to the filename
+- When `file.jobStatus === 'failed' | 'cancelled'` — shows an amber warning icon next to the filename
 
 ---
 
@@ -168,9 +169,13 @@ Scrollable summary with 5 sections: Summary, Key Findings, Methodology, Limitati
 | Prop | Type |
 |---|---|
 | `data` | `SummaryData \| null` |
+| `jobStatus?` | `string` |
 | `error?` | `string` |
 
-Shows placeholder when `data` is null and no error. When `error` is set, displays the error message with error styling (red background and text). `flex: 1`, `overflow-y: auto`.
+- When `data` is present: renders the full 5-section summary.
+- When `data` is null and `jobStatus` is one of pending/processing/failed/cancelled: shows a "Status" section (using `.summary-section` style) with a human-readable description. If `error` is also set (i.e. `jobStatus === 'failed'`), shows an "Error" section below it in the same style.
+- When `data` is null and no `jobStatus`: shows a placeholder message.
+- `flex: 1`, `overflow-y: auto`.
 
 ---
 
@@ -225,5 +230,6 @@ Full right-side panel: mode toggle + content view + chat input.
 | `uploadError?` | `string` |
 
 Back button (mobile), Summary/Chat tabs, content area (SummaryView or ChatView), ChatInput pinned at bottom.
-- `disabled` — disables both Summary and Chat tabs and ChatInput (e.g., while paper is being processed)
-- `uploadError` — when set, Summary tab stays enabled (shows error), but Chat tab and ChatInput are disabled. Passed to SummaryView as `error` prop.
+- `disabled` — disables Chat tab and ChatInput (e.g., while paper is being processed); Summary tab is always accessible
+- `jobStatus` — passed to SummaryView so it can display the current job state when no summary data is available
+- `uploadError` — passed to SummaryView as `error` prop; also disables Chat tab and ChatInput when set

@@ -1,2 +1,0 @@
-- FilePanel: need an icon in front of file selected for error, a triangle warning icon.
-- ContentPanel: While job is 'pending', 'processing', 'failed', 'cancelled', Summary need to show status and error message (if any) in normal style, similar to how paper summary is displayed.

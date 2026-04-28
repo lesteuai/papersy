@@ -29,12 +29,13 @@
 	// Job tracking — map of placeholder file ID -> { jobId, status, error? }
 	let jobsInProgress: Record<string, { jobId: string; status: string; error?: string }> = $state({});
 
-	let isProcessing = $derived(
+	let jobPending = $derived(
 		selectedFileId && jobsInProgress[selectedFileId]
 			? ['pending', 'processing'].includes(jobsInProgress[selectedFileId].status)
 			: false
 	);
 
+	let selectedUploadStatus = $derived(selectedFile?.jobStatus);
 	let selectedUploadError = $derived(selectedFile?.uploadError);
 
 	// Content state
@@ -124,7 +125,10 @@
 					);
 					delete jobsInProgress[paperId];
 				} else if (retries < maxRetries) {
-					// Still processing — poll again
+					// Still processing — sync jobStatus so UI reflects pending vs processing
+					files = files.map((f) =>
+						f.id === paperId ? { ...f, jobStatus: jobData.status } : f
+					);
 					retries++;
 					setTimeout(poll, pollTimeout);
 				}
@@ -191,6 +195,7 @@
 								summaryData: paperData.summaryData,
 								jobId: f.jobId,
 								jobStatus: f.jobStatus,
+								uploadError: f.uploadError,
 							}
 						: f
 				);
@@ -264,7 +269,8 @@
 					onBack={handleBack}
 					onModeChange={(m) => (mode = m)}
 					onSend={handleSend}
-					disabled={isProcessing}
+					disabled={jobPending}
+					jobStatus={selectedUploadStatus}
 					uploadError={selectedUploadError}
 				/>
 			</div>

@@ -7,7 +7,11 @@
 		references: string[];
 	};
 
-	let { data, error = undefined }: { data: SummaryData | null; error?: string } = $props();
+	let {
+		data,
+		jobStatus = undefined,
+		error = undefined
+	}: { data: SummaryData | null; jobStatus?: string; error?: string } = $props();
 </script>
 
 <div class="summary-view">
@@ -44,10 +48,17 @@
 				{/each}
 			</ul>
 		</section>
-	{:else if error}
-		<div class="error-state">
-			<p class="error-message">Upload failed: {error}</p>
-		</div>
+	{:else if !data && jobStatus && jobStatus !== 'done'}
+		<section class="summary-section">
+			<h3>Status</h3>
+			<p>{jobStatus === 'pending' ? 'Queued for processing...' : jobStatus === 'processing' ? 'Processing paper...' : jobStatus === 'failed' ? 'Upload failed.' : 'Cancelled.'}</p>
+		</section>
+		{#if error}
+			<section class="summary-section">
+				<h3>Error</h3>
+				<p>{error}</p>
+			</section>
+		{/if}
 	{:else}
 		<div class="placeholder">
 			<p>Summary will appear here once the paper is processed.</p>
@@ -116,21 +127,4 @@
 		}
 	}
 
-	.error-state {
-		flex: 1;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding: 20px;
-		background-color: var(--color--callout-background--error);
-		border-radius: 6px;
-		margin: 20px;
-
-		.error-message {
-			font-size: 0.95rem;
-			color: var(--color--callout-accent--error);
-			text-align: center;
-			margin: 0;
-		}
-	}
 </style>

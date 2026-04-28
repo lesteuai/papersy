@@ -5,7 +5,6 @@
 	import ChatInput from './ChatInput.svelte';
 	import type { ChatMessage, Mode, SummaryData } from '$lib/utils/types';
 
-
 	let {
 		mode,
 		messages,
@@ -14,6 +13,7 @@
 		onModeChange,
 		onSend,
 		disabled = false,
+		jobStatus = undefined,
 		uploadError = undefined
 	}: {
 		mode: Mode;
@@ -23,6 +23,7 @@
 		onModeChange: (m: Mode) => void;
 		onSend: (text: string) => void;
 		disabled?: boolean;
+		jobStatus?: string | undefined;
 		uploadError?: string | undefined;
 	} = $props();
 
@@ -38,9 +39,7 @@
 			<button
 				class="tab"
 				class:active={mode === 'summary'}
-				class:disabled
 				onclick={() => onModeChange('summary')}
-				{disabled}
 			>
 				Summary
 			</button>
@@ -58,7 +57,7 @@
 
 	<div class="panel-body">
 		{#if mode === 'summary'}
-			<SummaryView data={summaryData} error={uploadError} />
+			<SummaryView data={summaryData} {jobStatus} error={uploadError} />
 		{:else}
 			<ChatView {messages} />
 		{/if}
