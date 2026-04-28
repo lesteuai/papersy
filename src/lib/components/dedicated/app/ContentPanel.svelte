@@ -23,7 +23,7 @@
 		onModeChange: (m: Mode) => void;
 		onSend: (text: string) => void;
 		disabled?: boolean;
-		uploadError?: string;
+		uploadError?: string | undefined;
 	} = $props();
 
 	let chatDisabled = $derived(disabled || (uploadError ? true : false));

@@ -35,7 +35,7 @@
 			: false
 	);
 
-	let selectedUploadError = $derived(selectedFile?.uploadError ?? null);
+	let selectedUploadError = $derived(selectedFile?.uploadError);
 
 	// Content state
 	let mode: Mode = $state('summary');

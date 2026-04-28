@@ -128,11 +128,12 @@ let mobileActivePanel = $state('files');        // 'files' | 'content'
 5. **Background task** (async, no await):
    - LLM health check — marks job failed immediately if LLM unreachable
    - `new PDFParse({ data: buffer }).getText()` → extract text (pdf-parse v2.x class API)
+   - Clean page markers (`-- N of M --`) from extracted text
    - `ChatOpenAI.withStructuredOutput(SummarySchema)` → structured summary
    - UPDATE `paper` row with summary data (does not insert a new row)
    - Insert `reference` rows (one per reference)
    - Split text (1000 chars / 200 overlap) → embed → insert into `documents` with `{ paperId }` metadata
-   - Update job to `status: "done"`, or `status: "failed"` with error message
+   - Update job to `status: "done"`, or `status: "failed"` with error message stored in `job.error`
 
 ---
 

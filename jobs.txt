@@ -1,2 +1,0 @@
-- Error paper upload show no sign of error to the frontend, possibly because it's a background job. There should be a sign on the frontend to say the paper failed to be uploaded and reason in the Summary tab. With these failed paper, lock the Chat function
-- How to deal with paper (or PDF) bigger than the context window of the LLM?

@@ -16,7 +16,7 @@ export const load: PageServerLoad = async ({ request }) => {
 		with: {
 			jobs: {
 				// inArray: filters nested jobs to only pending/processing
-			where: (job, { inArray }) => inArray(job.status, ['pending', 'processing']),
+			where: (job, { inArray }) => inArray(job.status, ['pending', 'processing', 'failed', 'cancelled']),
 				limit: 1,
 			},
 		},
@@ -30,6 +30,7 @@ export const load: PageServerLoad = async ({ request }) => {
 			summaryData: undefined,
 			jobId: activeJob?.id,
 			jobStatus: activeJob?.status,
+			uploadError: activeJob?.error || undefined
 		};
 	});
 
