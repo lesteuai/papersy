@@ -24,15 +24,12 @@ function throwIfAborted(signal: AbortSignal) {
 
 async function processUpload(jobId: string, paperId: string, userId: string, file: File, fileBuffer: ArrayBuffer, signal: AbortSignal) {
 	try {
-		throwIfAborted(signal);
 
 		const healthy = await checkLlmHealth();
 		if (!healthy) {
 			await db.update(job).set({ status: 'failed', error: 'LLM service unavailable' }).where(eq(job.id, jobId));
 			return;
 		}
-
-		throwIfAborted(signal);
 
 		// Extract text from PDF
 		const buffer = Buffer.from(fileBuffer);
@@ -62,6 +59,8 @@ async function processUpload(jobId: string, paperId: string, userId: string, fil
 		]);
 		const chain = prompt.pipe(llm.withStructuredOutput(SummarySchema));
 		const result = await chain.invoke({ systemPrompt, paperText });
+		
+		throwIfAborted(signal);
 
 		// Update paper row with summary data
 		await db.update(paper).set({
