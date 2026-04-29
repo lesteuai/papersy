@@ -9,6 +9,7 @@ export const GET: RequestHandler = async ({ request, params }) => {
 	const session = await requireSession(request.headers);
 
 	const { id } = params;
+	if (!id) error(400, 'Missing paper id');
 
 	// Verify job belongs to this user
 	const jobRow = await db.query.job.findFirst({

@@ -11,6 +11,7 @@ export const GET: RequestHandler = async ({ request, params }) => {
 	const session = await requireSession(request.headers);
 
 	const { id } = params;
+	if (!id) error(400, 'Missing paper id');
 
 	// Fetch paper with references
 	const row = await db.query.paper.findFirst({
@@ -38,6 +39,7 @@ export const DELETE: RequestHandler = async ({ request, params }) => {
 	const session = await requireSession(request.headers);
 
 	const { id } = params;
+	if (!id) error(400, 'Missing paper id');
 
 	// Verify the paper belongs to this user
 	const row = await db.query.paper.findFirst({

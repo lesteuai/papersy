@@ -22,7 +22,7 @@ function throwIfAborted(signal: AbortSignal) {
 	if (signal.aborted) throw new AbortedError();
 }
 
-async function processUpload(jobId: string, paperId: string, userId: string, file: File, fileBuffer: ArrayBuffer, signal: AbortSignal) {
+async function processUpload(jobId: string, paperId: string, file: File, fileBuffer: ArrayBuffer, signal: AbortSignal) {
 	try {
 
 		const healthy = await checkLlmHealth();
@@ -63,7 +63,9 @@ async function processUpload(jobId: string, paperId: string, userId: string, fil
 		throwIfAborted(signal);
 
 		// Update paper row with summary data
+		// Drizzle skips fields set to undefined, keeping the original name
 		await db.update(paper).set({
+			name: result.name ?? undefined,
 			summary: result.summary,
 			keyFindings: JSON.stringify(result.key_findings),
 			methodology: result.methodology,
@@ -152,7 +154,7 @@ export const POST: RequestHandler = async ({ request }) => {
 	const controller = new AbortController();
 	activeJobs.set(jobId, controller);
 
-	processUpload(jobId, paperId, session.user.id, file, fileBuffer, controller.signal).catch((err) => {
+	processUpload(jobId, paperId, file, fileBuffer, controller.signal).catch((err) => {
 		console.error('Background upload failed:', err);
 	});
 

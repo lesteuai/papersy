@@ -5,7 +5,7 @@ import { HumanMessage, AIMessage } from '@langchain/core/messages';
 import type { RequestHandler } from '@sveltejs/kit';
 
 export const POST: RequestHandler = async ({ request }) => {
-	const session = await requireSession(request.headers);
+	await requireSession(request.headers);
 
 	const { paperId, messages } = await request.json() as {
 		paperId: string;
@@ -25,7 +25,7 @@ export const POST: RequestHandler = async ({ request }) => {
 	const result = await agent.invoke({ messages: history });
 
 	await vectorStore.end();
-
+	
 	const last = result.messages.at(-1);
 	const text = typeof last?.content === 'string' ? last.content : JSON.stringify(last?.content);
 

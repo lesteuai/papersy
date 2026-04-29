@@ -1,7 +1,7 @@
 import { auth } from '$lib/server/auth';
 import { db } from '$lib/server/db';
 import { paper } from '$lib/server/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, ne } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 import type { PapersyFile } from '$lib/utils/types';
 
@@ -15,14 +15,14 @@ export const load: PageServerLoad = async ({ request }) => {
 		where: eq(paper.userId, session.user.id),
 		with: {
 			jobs: {
-				// inArray: filters nested jobs to only pending/processing
-			where: (job, { inArray }) => inArray(job.status, ['pending', 'processing', 'failed', 'cancelled']),
+				where: (job) => ne(job.status, 'done'),
 				limit: 1,
 			},
 		},
 	});
 
 	const papers: PapersyFile[] = rows.map((row) => {
+		// Currently there is only one job per paper
 		const activeJob = row.jobs[0];
 		return {
 			id: row.id,

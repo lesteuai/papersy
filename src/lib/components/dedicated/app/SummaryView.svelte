@@ -12,6 +12,16 @@
 		jobStatus = undefined,
 		error = undefined
 	}: { data: SummaryData | null; jobStatus?: string; error?: string } = $props();
+
+	function getStatusText(status: string): string {
+		switch (status) {
+			case 'pending': return 'Queued for processing...';
+			case 'processing': return 'Processing paper...';
+			case 'storing': return 'Storing paper...';
+			case 'cancelled': return 'Cancelled.';
+			default: return 'Upload failed.';
+		}
+	}
 </script>
 
 <div class="summary-view">
@@ -51,7 +61,7 @@
 	{:else if !data && jobStatus && jobStatus !== 'done'}
 		<section class="summary-section">
 			<h3>Status</h3>
-			<p>{jobStatus === 'pending' ? 'Queued for processing...' : jobStatus === 'processing' ? 'Processing paper...' : jobStatus === 'failed' ? 'Upload failed.' : 'Cancelled.'}</p>
+			<p>{getStatusText(jobStatus)}</p>
 		</section>
 		{#if error}
 			<section class="summary-section">

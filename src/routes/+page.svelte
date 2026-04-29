@@ -8,7 +8,7 @@
 	import ContentPanel from '$lib/components/dedicated/app/ContentPanel.svelte';
 	import type { PapersyFile, ChatMessage, Mode } from '$lib/utils/types';
 
-	const pollTimeout = 5000;
+	const pollTimeout = 1000;
 
 	let { data } = $props();
 	// File state — seed from server on load

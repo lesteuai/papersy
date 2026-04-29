@@ -11,6 +11,7 @@ const systemPrompt = await fs.readFile(PROMPT_PATH, 'utf-8');
 
 // Summarization schema — matches SummaryView's SummaryData shape
 export const SummarySchema = z.object({
+	name: z.string().nullable().describe('Title of the paper from the first page. null if it cannot be determined.'),
 	summary: z.string().describe('Concise summary of the paper in 3-5 sentences covering objective, methodology, and findings'),
 	key_findings: z.array(z.string()).length(3).describe('Exactly 3 most important insights or contributions, each 1-2 sentences'),
 	references: z.array(z.string()).describe('All references extracted from the paper, without leading numeric labels. Empty array if none found.'),
