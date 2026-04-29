@@ -266,6 +266,7 @@
 					{mode}
 					{messages}
 					summaryData={selectedFile?.summaryData ?? null}
+					paperName={selectedFile?.name}
 					onBack={handleBack}
 					onModeChange={(m) => (mode = m)}
 					onSend={handleSend}

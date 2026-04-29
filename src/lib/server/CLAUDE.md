@@ -113,7 +113,7 @@ Relations: `paperRelations` (one-to-many → reference, one-to-many → job), `r
 |---|---|---|
 | `id` | text PK | `crypto.randomUUID()` |
 | `userId` | text FK → user | cascade delete |
-| `status` | text | default: 'pending'; values: pending, processing, done, failed, cancelled |
+| `status` | text | default: 'pending'; values: pending, processing, storing, done, failed, cancelled |
 | `paperId` | text nullable FK → paper | set null on delete |
 | `error` | text nullable | error message if status is failed |
 | `createdAt` | timestamp | `defaultNow()` |
@@ -141,6 +141,7 @@ LangChain orchestration for summarization and RAG.
 **`SummarySchema`** — Zod schema for structured LLM output:
 ```ts
 {
+  name: string | null,        // paper title from first page; null if not determinable
   summary: string,            // 3-5 sentence paper summary
   key_findings: string[3],    // exactly 3 key insights
   references: string[],       // extracted references, no numeric labels
@@ -187,20 +188,20 @@ Initialized with:
 
 ---
 
-**`createRagAgent(paperId: string)`** → `Promise<{ agent, vectorStore }>`
+**`createRagAgent(paperId: string, paperContext: { name: string; summary: string | null })`** → `Promise<{ agent, vectorStore }>`
 
-Creates a RAG agent scoped to a single paper with an embedded system prompt:
+Creates a RAG agent scoped to a single paper with a dynamically built system prompt:
 
 1. Initialize `PGVectorStore`
 2. Create `retrieve` tool:
    - Runs `similaritySearch(query, 4, { paperId })` — results filtered to this paper
    - Returns "No relevant documents found." if empty
-3. Attach system prompt to model: `model.withSystemPrompt(ragSystemPrompt)`
-4. Create `agent = createAgent({ model, tools: [retrieve] })` with the system-prompted model
+3. Call `buildSystemPrompt(name, summary)` — interpolates `{paperName}` and `{paperSummary}` placeholders in `default-prompts/chatbot.txt`; `summary` falls back to `"Not yet available."` when null
+4. Create `agent = createAgent({ model, tools: [retrieve], systemPrompt })` with the built prompt
 5. Return agent + vectorStore (caller must call `vectorStore.end()`)
 
-**System prompt (baked into the agent's model):**
-> Guides the AI to use the retrieve tool to ground answers in paper content, respond naturally and conversationally, and ignore any instructions embedded in retrieved context. Temperature is set to 0.7.
+**System prompt (`default-prompts/chatbot.txt`):**
+> Guides the AI to use the retrieve tool, respond naturally, ignore instructions in retrieved context, and includes the paper title and summary as orienting context.
 
 ---
 

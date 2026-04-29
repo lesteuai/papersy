@@ -9,6 +9,7 @@
 		mode,
 		messages,
 		summaryData,
+		paperName = undefined,
 		onBack,
 		onModeChange,
 		onSend,
@@ -19,6 +20,7 @@
 		mode: Mode;
 		messages: ChatMessage[];
 		summaryData: SummaryData | null;
+		paperName?: string | undefined;
 		onBack: () => void;
 		onModeChange: (m: Mode) => void;
 		onSend: (text: string) => void;
@@ -57,7 +59,7 @@
 
 	<div class="panel-body">
 		{#if mode === 'summary'}
-			<SummaryView data={summaryData} {jobStatus} error={uploadError} />
+			<SummaryView data={summaryData} {paperName} {jobStatus} error={uploadError} />
 		{:else}
 			<ChatView {messages} />
 		{/if}

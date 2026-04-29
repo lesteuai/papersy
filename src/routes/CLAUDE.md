@@ -48,7 +48,7 @@ In SPA mode, `load()` runs on the client and returns `{ papers: PapersyFile[], l
 - Calls API endpoints to fetch data (since database is not directly accessible client-side)
 - Checks session status via API
 - If no session: `{ papers: [], loggedIn: false }`
-- If session: fetches all papers with references, then queries active jobs (pending/processing) for this user; returns `PapersyFile[]` with `jobId` and `jobStatus` populated for papers that are still processing
+- If session: fetches all papers with their most recent non-done job (`ne(job.status, 'done')`); returns `PapersyFile[]` with `jobId` and `jobStatus` populated for papers that are not yet complete
 
 **`+page.svelte`** — App shell
 
@@ -130,8 +130,9 @@ let mobileActivePanel = $state('files');        // 'files' | 'content'
    - `new PDFParse({ data: buffer }).getText()` → extract text (pdf-parse v2.x class API)
    - Clean page markers (`-- N of M --`) from extracted text
    - `ChatOpenAI.withStructuredOutput(SummarySchema)` → structured summary
-   - UPDATE `paper` row with summary data (does not insert a new row)
+   - UPDATE `paper` row with summary data; if LLM extracted a name, overwrites the original filename (Drizzle skips `undefined`, so original name is kept when name is null)
    - Insert `reference` rows (one per reference)
+   - Update job to `status: "storing"`
    - Split text (1000 chars / 200 overlap) → embed → insert into `documents` with `{ paperId }` metadata
    - Update job to `status: "done"`, or `status: "failed"` with error message stored in `job.error`
 
@@ -142,7 +143,7 @@ let mobileActivePanel = $state('files');        // 'files' | 'content'
 **Response (200):**
 ```json
 {
-  "status": "pending|processing|done|failed",
+  "status": "pending|processing|storing|done|failed|cancelled",
   "paperId": "uuid|null",
   "error": "error message|null"
 }
@@ -150,8 +151,9 @@ let mobileActivePanel = $state('files');        // 'files' | 'content'
 
 **Pipeline:**
 1. Auth check (401 if no session)
-2. Verify job belongs to user (404 if not found)
-3. Return job status, paperId (when done), and error message (if failed)
+2. Validate `id` param (400 if missing)
+3. Verify job belongs to user (404 if not found)
+4. Return job status, paperId (when done), and error message (if failed)
 
 ---
 
@@ -167,12 +169,13 @@ let mobileActivePanel = $state('files');        // 'files' | 'content'
 **Pipeline:**
 1. Auth check (401)
 2. Validate paperId (400)
-3. LLM health check — 503 if unavailable
-4. `createRagAgent(paperId)` — retrieve tool filtered by paperId metadata
-5. Map messages to LangChain `HumanMessage`/`AIMessage`
-6. `agent.invoke({ messages: [history.at(-1)!] })` — passes only the last user message
-7. `vectorStore.end()`
-8. Return last message text from result
+3. Fetch paper from DB by `paperId` + `userId` — 404 if not found (also serves as ownership check)
+4. LLM health check — 503 if unavailable
+5. `createRagAgent(paperId, { name, summary })` — retrieve tool filtered by paperId; system prompt includes paper title and summary
+6. Map messages to LangChain `HumanMessage`/`AIMessage`
+7. `agent.invoke({ messages: history })` — passes full conversation history
+8. `vectorStore.end()`
+9. Return last message text from result
 
 ---
 
@@ -195,9 +198,10 @@ let mobileActivePanel = $state('files');        // 'files' | 'content'
 
 **Pipeline:**
 1. Auth check (401)
-2. Verify ownership via relational query (404 if not found)
-3. Fetch paper with references using `db.query.paper.findFirst()`
-4. Return paper JSON
+2. Validate `id` param (400 if missing)
+3. Verify ownership via relational query (404 if not found)
+4. Fetch paper with references using `db.query.paper.findFirst()`
+5. Return paper JSON
 
 ---
 
@@ -207,11 +211,12 @@ let mobileActivePanel = $state('files');        // 'files' | 'content'
 
 **Pipeline:**
 1. Auth check (401)
-2. Verify ownership via relational query (`db.query.paper.findFirst()`) (404 if not found)
-3. `vectorStore.delete({ filter: { paperId: id } })`
-4. `db.delete(paper).where(eq(paper.id, id))` — cascades to `reference` rows
-5. `vectorStore.end()`
-6. Return 204
+2. Validate `id` param (400 if missing)
+3. Verify ownership via relational query (`db.query.paper.findFirst()`) (404 if not found)
+4. `vectorStore.delete({ filter: { paperId: id } })`
+5. `db.delete(paper).where(eq(paper.id, id))` — cascades to `reference` rows
+6. `vectorStore.end()`
+7. Return 204
 
 ---
 

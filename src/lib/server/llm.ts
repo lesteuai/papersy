@@ -7,7 +7,13 @@ import fs from 'fs/promises';
 import path from 'path';
 
 const PROMPT_PATH = path.resolve('default-prompts', 'chatbot.txt');
-const systemPrompt = await fs.readFile(PROMPT_PATH, 'utf-8');
+const promptTemplate = await fs.readFile(PROMPT_PATH, 'utf-8');
+
+function buildSystemPrompt(name: string, summary: string | null): string {
+	return promptTemplate
+		.replace('{paperName}', name)
+		.replace('{paperSummary}', summary ?? 'Not yet available.');
+}
 
 // Summarization schema — matches SummaryView's SummaryData shape
 export const SummarySchema = z.object({
@@ -74,7 +80,7 @@ export async function getVectorStore() {
 	return PGVectorStore.initialize(getEmbeddings(), vectorStoreConfig);
 }
 
-export async function createRagAgent(paperId: string) {
+export async function createRagAgent(paperId: string, paperContext: { name: string; summary: string | null }) {
 	const vectorStore = await getVectorStore();
 
 	const retrieve = tool(
@@ -82,7 +88,7 @@ export async function createRagAgent(paperId: string) {
 			const docs = await vectorStore.similaritySearch(query, 4, { paperId });
 			if (docs.length === 0) return ['No relevant documents found.', []];
 			const serialized = docs
-				.map((doc) => `Source: ${doc.metadata.source ?? paperId}\nContent: ${doc.pageContent}`)
+				.map((doc) => `Paper: ${doc.metadata.source ?? paperId}\nContent: ${doc.pageContent}`)
 				.join('\n');
 			return [serialized, docs];
 		},
@@ -94,6 +100,7 @@ export async function createRagAgent(paperId: string) {
 		}
 	);
 
+	const systemPrompt = buildSystemPrompt(paperContext.name, paperContext.summary);
 	const model = getLlm();
 	const agent = createAgent({ model, tools: [retrieve], systemPrompt });
 	return { agent, vectorStore };

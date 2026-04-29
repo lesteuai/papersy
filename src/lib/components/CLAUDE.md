@@ -26,7 +26,7 @@ Import via `$lib/components/{layer}/ComponentName.svelte` or `$lib/components/de
 | LoginCard | dedicated/app | `onLogin: (email, password) => Promise<string \| null>` | — | async; shows error + loading state |
 | FilePanel | dedicated/app | files, selectedFileId, uploading?, onUpload, onSelect, onDelete | — | uploading disables button |
 | FileListItem | dedicated/app | file, selected, onSelect, onDelete | — | Shows spinner when `file.jobStatus` is pending/processing; warning icon when failed/cancelled |
-| SummaryView | dedicated/app | `data: SummaryData \| null`, `jobStatus?`, `error?` | — | |
+| SummaryView | dedicated/app | `data: SummaryData \| null`, `paperName?`, `jobStatus?`, `error?` | — | |
 | ChatMessage | dedicated/app | `message: ChatMessage` | — | Renders animated dots when `message.loading` is true |
 | ChatView | dedicated/app | `messages: ChatMessage[]` | — | |
 | ChatInput | dedicated/app | onSend, disabled? | — | |
@@ -169,11 +169,12 @@ Scrollable summary with 5 sections: Summary, Key Findings, Methodology, Limitati
 | Prop | Type |
 |---|---|
 | `data` | `SummaryData \| null` |
+| `paperName?` | `string` |
 | `jobStatus?` | `string` |
 | `error?` | `string` |
 
 - When `data` is present: renders the full 5-section summary.
-- When `data` is null and `jobStatus` is one of pending/processing/failed/cancelled: shows a "Status" section (using `.summary-section` style) with a human-readable description. If `error` is also set (i.e. `jobStatus === 'failed'`), shows an "Error" section below it in the same style.
+- When `data` is null and `jobStatus` is one of pending/processing/storing/failed/cancelled: shows a "Status" section (using `.summary-section` style) with a human-readable description via `getStatusText()` helper. If `error` is also set (i.e. `jobStatus === 'failed'`), shows an "Error" section below it in the same style.
 - When `data` is null and no `jobStatus`: shows a placeholder message.
 - `flex: 1`, `overflow-y: auto`.
 
@@ -223,6 +224,7 @@ Full right-side panel: mode toggle + content view + chat input.
 | `mode` | `'summary' \| 'chat'` |
 | `messages` | `ChatMessage[]` |
 | `summaryData` | `SummaryData \| null` |
+| `paperName?` | `string` |
 | `onBack` | `() => void` |
 | `onModeChange` | `(mode: 'summary' \| 'chat') => void` |
 | `onSend` | `(text: string) => void` |

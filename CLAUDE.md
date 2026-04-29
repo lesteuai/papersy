@@ -57,7 +57,7 @@ Server-side configuration (`.env`):
 **Database**: PostgreSQL with Drizzle ORM
 - Schema: `user`, `session`, `account`, `verification` (auth tables, auto-generated)
 - Schema: `paper`, `reference` (content), `documents` (pgvector table, managed by PGVectorStore)
-- Schema: `job` (upload job tracking; statuses: pending/processing/done/failed/cancelled)
+- Schema: `job` (upload job tracking; statuses: pending/processing/storing/done/failed/cancelled)
 
 **LLM & RAG**: LangChain orchestration
 - `ChatOpenAI` with `temperature: 0.7` for conversational chat responses
@@ -71,6 +71,8 @@ Server-side configuration (`.env`):
 - `processUpload()` checks `signal.aborted` at each major step (PDF extraction, summarization, vectorization)
 - Paper deletion aborts any active upload job for that paper
 - PDF text is cleaned of page markers (`-- N of M --`) before being sent to the LLM
+- LLM extracts paper name from the first page; if found, it overwrites the filename stored at upload time
+- Job progresses through statuses: `pending` → `processing` → `storing` → `done`; `storing` covers the vectorization step
 - `parser.destroy()` and `vectorStore.end()` are called in `finally` blocks to ensure cleanup even on error
 - On job failure, error message is stored in `job.error` and preserved in `PapersyFile.uploadError` so the UI can display the reason
 

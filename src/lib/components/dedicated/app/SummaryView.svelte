@@ -9,9 +9,10 @@
 
 	let {
 		data,
+		paperName = undefined,
 		jobStatus = undefined,
 		error = undefined
-	}: { data: SummaryData | null; jobStatus?: string; error?: string } = $props();
+	}: { data: SummaryData | null; paperName?: string; jobStatus?: string; error?: string } = $props();
 
 	function getStatusText(status: string): string {
 		switch (status) {
@@ -26,6 +27,11 @@
 
 <div class="summary-view">
 	{#if data}
+		<section class="summary-section">
+			<h3>Paper name</h3>
+			<p>{paperName}</p>
+		</section>
+		
 		<section class="summary-section">
 			<h3>Summary</h3>
 			<p>{data.summary}</p>
