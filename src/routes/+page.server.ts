@@ -15,7 +15,6 @@ export const load: PageServerLoad = async ({ request }) => {
 		where: eq(paper.userId, session.user.id),
 		with: {
 			jobs: {
-				where: (job) => ne(job.status, 'done'),
 				limit: 1,
 			},
 		},

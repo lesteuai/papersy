@@ -24,14 +24,19 @@ export const POST: RequestHandler = async ({ request }) => {
 	const healthy = await checkLlmHealth();
 	if (!healthy) error(503, 'LLM service unavailable');
 
-	const { agent, vectorStore } = await createRagAgent(paperId, { name: row.name, summary: row.summary });
+	const { agent, vectorStore } = await createRagAgent({
+		id: paperId, 
+		userId: session.user.id,
+		name: row.name, 
+		summary: row.summary
+	});
 
 	const history = messages.map((m) =>
 		m.role === 'user' ? new HumanMessage(m.text) : new AIMessage(m.text)
 	);
 
 	const result = await agent.invoke({ messages: history });
-
+	
 	await vectorStore.end();
 	
 	const last = result.messages.at(-1);

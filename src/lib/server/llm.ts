@@ -80,15 +80,23 @@ export async function getVectorStore() {
 	return PGVectorStore.initialize(getEmbeddings(), vectorStoreConfig);
 }
 
-export async function createRagAgent(paperId: string, paperContext: { name: string; summary: string | null }) {
+export async function createRagAgent(paper: { 
+	id: string,
+	userId: string,
+	name: string, 
+	summary: string | null, 
+}) {
 	const vectorStore = await getVectorStore();
 
 	const retrieve = tool(
 		async ({ query }) => {
-			const docs = await vectorStore.similaritySearch(query, 4, { paperId });
+			const docs = await vectorStore.similaritySearch(query, 4, { 
+				paperId: paper.id,
+				userId:  paper.userId
+			});
 			if (docs.length === 0) return ['No relevant documents found.', []];
 			const serialized = docs
-				.map((doc) => `Paper: ${doc.metadata.source ?? paperId}\nContent: ${doc.pageContent}`)
+				.map((doc) => `Paper: ${doc.metadata.source ?? paper.name}\nContent: ${doc.pageContent}`)
 				.join('\n');
 			return [serialized, docs];
 		},
@@ -100,7 +108,7 @@ export async function createRagAgent(paperId: string, paperContext: { name: stri
 		}
 	);
 
-	const systemPrompt = buildSystemPrompt(paperContext.name, paperContext.summary);
+	const systemPrompt = buildSystemPrompt(paper.name, paper.summary);
 	const model = getLlm();
 	const agent = createAgent({ model, tools: [retrieve], systemPrompt });
 	return { agent, vectorStore };

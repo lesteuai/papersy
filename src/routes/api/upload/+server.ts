@@ -22,7 +22,7 @@ function throwIfAborted(signal: AbortSignal) {
 	if (signal.aborted) throw new AbortedError();
 }
 
-async function processUpload(jobId: string, paperId: string, file: File, fileBuffer: ArrayBuffer, signal: AbortSignal) {
+async function processUpload(jobId: string, paperId: string, userId: string, fileBuffer: ArrayBuffer, signal: AbortSignal) {
 	try {
 
 		const healthy = await checkLlmHealth();
@@ -94,7 +94,10 @@ async function processUpload(jobId: string, paperId: string, file: File, fileBuf
 		// Vectorize — split and index
 		const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 1000, chunkOverlap: 200 });
 		const docs = await splitter.splitDocuments([
-			new Document({ pageContent: paperText, metadata: { source: file.name, paperId } }),
+			new Document({ pageContent: paperText, metadata: { 
+				title: result.name,
+				paperId,
+				userId } }),
 		]);
 
 		const vectorStore = await getVectorStore();
@@ -132,7 +135,7 @@ export const POST: RequestHandler = async ({ request }) => {
 	const file = formData.get('file') as File | null;
 	if (!file || file.type !== 'application/pdf') error(400, 'PDF file required');
 
-	// Create paper row first (empty — summary filled in by background job)
+	// Create paper row first (empty, summary filled in by background job)
 	const paperId = crypto.randomUUID();
 	await db.insert(paper).values({
 		id: paperId,
@@ -154,7 +157,7 @@ export const POST: RequestHandler = async ({ request }) => {
 	const controller = new AbortController();
 	activeJobs.set(jobId, controller);
 
-	processUpload(jobId, paperId, file, fileBuffer, controller.signal).catch((err) => {
+	processUpload(jobId, paperId, session.user.id, fileBuffer, controller.signal).catch((err) => {
 		console.error('Background upload failed:', err);
 	});
 
