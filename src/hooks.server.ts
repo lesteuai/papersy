@@ -2,7 +2,7 @@ import { auth } from '$lib/server/auth';
 import { svelteKitHandler } from 'better-auth/svelte-kit';
 import { building } from '$app/environment';
 import { client } from '$lib/server/db';
-import type { Handle } from '@sveltejs/kit';
+import type { Handle, HandleServerError } from '@sveltejs/kit';
 
 // Close the postgres connection pool on shutdown so the process can exit cleanly.
 // Without this, idle DB connections keep the event loop alive and the process
@@ -19,4 +19,9 @@ if (!building) {
 
 export const handle: Handle = ({ event, resolve }) => {
 	return svelteKitHandler({ auth, event, resolve, building });
+};
+
+export const handleError: HandleServerError = ({ error, event, status }) => {
+	console.error(`[server error] ${status} on ${event.url.pathname}:`, error);
+	return { message: 'An unexpected error occurred.' };
 };
