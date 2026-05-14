@@ -76,6 +76,17 @@ export async function checkLlmHealth(): Promise<boolean> {
 	}
 }
 
+export async function checkEmbeddingHealth(): Promise<boolean> {
+	try {
+		const res = await fetch(`${env.EMBEDDING_URL}/models`, {
+			signal: AbortSignal.timeout(5000),
+		});
+		return res.ok;
+	} catch {
+		return false;
+	}
+}
+
 export async function getVectorStore() {
 	return PGVectorStore.initialize(getEmbeddings(), vectorStoreConfig);
 }

@@ -1,6 +1,6 @@
 import { json, error } from '@sveltejs/kit';
 import { requireSession } from '$lib/server/auth';
-import { checkLlmHealth, createRagAgent } from '$lib/server/llm';
+import { checkLlmHealth, checkEmbeddingHealth, createRagAgent } from '$lib/server/llm';
 import { db } from '$lib/server/db';
 import { paper } from '$lib/server/db/schema';
 import { and, eq } from 'drizzle-orm';
@@ -23,6 +23,9 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	const healthy = await checkLlmHealth();
 	if (!healthy) error(503, 'LLM service unavailable');
+
+	const embeddingHealthy = await checkEmbeddingHealth();
+	if (!embeddingHealthy) error(503, 'Embedding service unavailable');
 
 	const { agent, vectorStore } = await createRagAgent({
 		id: paperId, 

@@ -3,7 +3,7 @@ import { requireSession } from '$lib/server/auth';
 import { db } from '$lib/server/db';
 import { paper, reference, job } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
-import { getVectorStore, getLlm, SummarySchema, checkLlmHealth } from '$lib/server/llm';
+import { getVectorStore, getLlm, SummarySchema, checkLlmHealth, checkEmbeddingHealth } from '$lib/server/llm';
 import { activeJobs } from '$lib/server/upload-jobs';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
 import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters';
@@ -90,6 +90,13 @@ async function processUpload(jobId: string, paperId: string, userId: string, fil
 			.update(job)
 			.set({ status: 'storing' })
 			.where(eq(job.id, jobId));
+
+		// Check embedding health before vectorizing
+		const embeddingHealthy = await checkEmbeddingHealth();
+		if (!embeddingHealthy) {
+			await db.update(job).set({ status: 'failed', error: 'Embedding service unavailable' }).where(eq(job.id, jobId));
+			return;
+		}
 
 		// Vectorize — split and index
 		const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 1000, chunkOverlap: 200 });
