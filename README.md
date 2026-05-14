@@ -62,8 +62,8 @@ Available environment variables:
 
 **4. Push database schema**
 ```sh
-pnpm run db:generate       # create tables in PostgreSQL
-pnpm run db:migrate   # generate table schema
+pnpm run db:generate       # generate migration files from schema changes
+pnpm run db:migrate        # run pending migrations on the database
 ```
 
 **5. Start dev server**
@@ -132,6 +132,7 @@ src/
     └── server/
         ├── auth.ts              ← better-auth instance
         ├── llm.ts               ← LangChain: embeddings, RAG agent, schemas
+        ├── upload-jobs.ts       ← AbortController map for upload cancellation
         └── db/
             ├── index.ts         ← Drizzle ORM client
             ├── schema.ts        ← custom tables (paper, reference, job)
@@ -140,19 +141,19 @@ src/
 
 ### Core Concepts
 
-**Authentication** ([details](./src/lib/server/CLAUDE.md))
+**Authentication** ([details](./docs/server.md))
 - better-auth with email/password flows
 - Sessions stored in PostgreSQL
 - Client uses `getAuthClient()` from `$lib/auth-client.ts` (lazy, browser-only)
 - Server validates session via `auth.api.getSession({ headers })` in API routes
 
-**Database** ([details](./src/lib/server/CLAUDE.md))
+**Database** ([details](./docs/server.md))
 - PostgreSQL with Drizzle ORM
 - Auth tables: `user`, `session`, `account`, `verification` (auto-generated)
 - Content tables: `paper`, `reference`, `job` (custom)
 - Vector table: `documents` (pgvector, managed by PGVectorStore)
 
-**LLM & RAG** ([details](./src/lib/server/CLAUDE.md))
+**LLM & RAG** ([details](./docs/server.md))
 - LangChain orchestration
 - `ChatOpenAI` for summarization (with Zod schema validation)
 - `OpenAIEmbeddings` for vector generation
@@ -163,7 +164,7 @@ src/
 - CSS-driven theming via `data-theme` attribute on `<html>`
 - Responsive design with semantic breakpoints
 
-### API Routes ([details](./src/routes/CLAUDE.md))
+### API Routes ([details](./docs/routes.md))
 
 | Endpoint | Method | Purpose |
 |---|---|---|
@@ -184,7 +185,7 @@ src/
 | `verification` | email verification tokens |
 | `paper` | uploaded paper metadata + summary |
 | `reference` | 1-to-many references per paper |
-| `job` | upload job tracking (pending/processing/done/failed) |
+| `job` | upload job tracking (pending/processing/storing/done/failed/cancelled) |
 | `documents` | pgvector chunks with `{ paperId, source }` metadata |
 
 ---
@@ -192,15 +193,15 @@ src/
 ## Detailed Documentation
 
 - **[CLAUDE.md](./CLAUDE.md)** — Project configuration, environment, and high-level architecture
-- **[src/routes/CLAUDE.md](./src/routes/CLAUDE.md)** — File-based routing, page state, and API contracts
-- **[src/lib/CLAUDE.md](./src/lib/CLAUDE.md)** — Library structure, component patterns, and public exports
-- **[src/lib/server/CLAUDE.md](./src/lib/server/CLAUDE.md)** — Server modules (auth, database, LLM)
+- **[docs/routes.md](./docs/routes.md)** — File-based routing, page state, and API contracts
+- **[docs/lib-overview.md](./docs/lib-overview.md)** — Library structure, component patterns, and public exports
+- **[docs/server.md](./docs/server.md)** — Server modules (auth, database, LLM)
 
 ---
 
 ## Technology Stack
 
-- **Frontend:** SvelteKit 5, Svelte 5 with runes, SCSS, Tailwind (utilities only)
+- **Frontend:** SvelteKit 5, Svelte 5 with runes, SCSS, Tailwind (utilities only), marked (markdown rendering)
 - **Backend:** SvelteKit adapter-node, TypeScript
 - **Auth:** better-auth with email/password provider
 - **Database:** PostgreSQL + pgvector, Drizzle ORM
