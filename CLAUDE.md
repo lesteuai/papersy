@@ -41,7 +41,7 @@ Detailed documentation organized by topic:
 - [Icons](docs/icons.md) — SVG icon library
 - [SCSS & Styling](docs/scss.md) — Theme system, breakpoints, design tokens
 - [Stores](docs/stores.md) — Svelte stores (auth, theme)
-- [Types & Utilities](docs/types.md) — Shared TypeScript types
+- [Types & Utilities](docs/types.md) — Shared TypeScript types, enums (JobStatus)
 - [Static Data](docs/data.md) — Site metadata
 - [Server Modules](docs/server.md) — Database, auth, LLM orchestration
 - [Routes & API](docs/routes.md) — Page routing, REST endpoints
@@ -84,7 +84,7 @@ Detailed documentation organized by topic:
 - **Lazy data loading**: Papers load without summary data; full summary fetched on demand
 - **PDF cleaning**: Page markers (`-- N of M --`) stripped before LLM processing
 - **Title extraction**: LLM infers paper name from first page; overwrites upload filename if found
-- **Job statuses**: pending → processing → storing → done (or failed/cancelled). Client polls and resumes any job in pending/processing/storing state on page reload
+- **Job statuses**: Defined in `JobStatus` enum (`src/lib/utils/types.ts`). States: pending → processing → storing → done (or failed/cancelled). Database schema uses `jobStatusEnum` (pgEnum via Drizzle). Client polls and resumes any job in pending/processing/storing state on page reload
 - **Embedding health check**: Before vectorization (storing phase) and before RAG retrieval, the system checks embedding service health. If unavailable, the upload fails or chat returns 503
 - **Service health checks**: Both LLM and embedding services are pinged (5s timeout) before use to fail fast with 503
 - **Prism theme**: Code syntax highlighting is hardcoded, does not respond to dark mode
