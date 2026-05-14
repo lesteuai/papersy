@@ -31,7 +31,7 @@
 
 	let jobPending = $derived(
 		selectedFileId && jobsInProgress[selectedFileId]
-			? ['pending', 'processing'].includes(jobsInProgress[selectedFileId].status)
+			? ['pending', 'processing', 'storing'].includes(jobsInProgress[selectedFileId].status)
 			: false
 	);
 
@@ -64,7 +64,7 @@
 		files = data.papers;
 		// Resume polling for any in-progress jobs from server
 		for (const p of data.papers) {
-			if (p.jobId && (p.jobStatus === 'pending' || p.jobStatus === 'processing')) {
+			if (p.jobId && (p.jobStatus === 'pending' || p.jobStatus === 'processing' || p.jobStatus === 'storing')) {
 				jobsInProgress[p.id] = { jobId: p.jobId, status: p.jobStatus };
 				pollJobStatus(p.id, p.jobId);
 			}
