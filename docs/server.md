@@ -122,6 +122,8 @@ Zod schema for structured LLM output:
 
 **`checkLlmHealth()`** — Pings `CHAT_MODEL_URL/models` with a 5-second timeout. Returns `true` if reachable. Call before invoking the LLM to fail fast with a 503.
 
+**`checkEmbeddingHealth()`** — Pings `EMBEDDING_URL/models` with a 5-second timeout. Returns `true` if reachable. Call before vectorization or RAG retrieval to fail fast with a 503.
+
 **`getVectorStore()`** — `PGVectorStore` initialized with `tableName: "documents"`. **Always call `vectorStore.end()` after use** to release the connection pool.
 
 **`createRagAgent(paperId, { name, summary })`** — Creates a RAG agent scoped to a single paper:

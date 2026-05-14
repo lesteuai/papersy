@@ -84,7 +84,9 @@ Detailed documentation organized by topic:
 - **Lazy data loading**: Papers load without summary data; full summary fetched on demand
 - **PDF cleaning**: Page markers (`-- N of M --`) stripped before LLM processing
 - **Title extraction**: LLM infers paper name from first page; overwrites upload filename if found
-- **Job statuses**: pending → processing → storing → done (or failed/cancelled)
+- **Job statuses**: pending → processing → storing → done (or failed/cancelled). Client polls and resumes any job in pending/processing/storing state on page reload
+- **Embedding health check**: Before vectorization (storing phase) and before RAG retrieval, the system checks embedding service health. If unavailable, the upload fails or chat returns 503
+- **Service health checks**: Both LLM and embedding services are pinged (5s timeout) before use to fail fast with 503
 - **Prism theme**: Code syntax highlighting is hardcoded, does not respond to dark mode
 - **svg-text-stroke animation**: Uses legacy `var(--text-color)` instead of `var(--color--text)`
 

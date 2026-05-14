@@ -83,7 +83,7 @@ Request: `FormData { file: File }` (PDF only). Response (202): `{ "jobId": "uuid
 **Pipeline:**
 1. Auth check (401), validate PDF (400)
 2. Create empty `paper` row + `job` row with `status: "pending"`, return both IDs
-3. Background task: LLM health check → PDF parse + clean → structured summary via `SummarySchema` → UPDATE paper → INSERT references → update job to `"storing"` → embed + vectorize → update job to `"done"` (or `"failed"` with error)
+3. Background task: LLM health check → PDF parse + clean → structured summary via `SummarySchema` → UPDATE paper → INSERT references → update job to `"storing"` → embedding health check → embed + vectorize → update job to `"done"` (or `"failed"` with error)
 
 ### GET `/api/jobs/[id]`
 
@@ -94,7 +94,7 @@ Response: `{ status, paperId, error }`. Auth check + ownership verify.
 Request: `{ paperId, messages: ChatMessage[] }`. Response: `{ text: "AI response" }`.
 
 **Pipeline:**
-Auth check → validate paperId → fetch paper (ownership) → LLM health check → `createRagAgent(paperId, { name, summary })` → invoke with full history → `vectorStore.end()` → return last message text.
+Auth check → validate paperId → fetch paper (ownership) → LLM health check → embedding health check → `createRagAgent(paperId, { name, summary })` → invoke with full history → `vectorStore.end()` → return last message text.
 
 ### GET `/api/papers/[id]`
 
