@@ -1,3 +1,0 @@
-- when uploading and processing paper, Summary screen doesn't change status, just "processing paper...". I didn't know it was finished until I refreshed the page
-- when uploading the paper, the server didn't have embedding model turned on, so it failed to vectorize. The paper still showed up in failed state with actual Summary (since this part was from LLM), but Chat is disabled becaused the paper failed. If it failed, show Summary page as failed and error.
-- Implement health check for embedding model whenever it is used.
