@@ -1,3 +1,12 @@
+export enum JobStatus {
+	Pending = 'pending',
+	Processing = 'processing',
+	Storing = 'storing',
+	Done = 'done',
+	Failed = 'failed',
+	Cancelled = 'cancelled'
+}
+
 export type SummaryData = {
 	summary: string;
 	keyFindings: string[];
@@ -11,7 +20,7 @@ export type PapersyFile = {
 	name: string;
 	summaryData?: SummaryData;
 	jobId?: string;
-	jobStatus?: string; // 'pending' | 'processing' | 'storing' | 'failed' | 'done' | 'cancelled'
+	jobStatus?: JobStatus;
 	uploadError?: string | undefined;
 };
 

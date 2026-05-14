@@ -1,6 +1,16 @@
-import { pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, pgEnum } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { user } from './auth.schema';
+import { JobStatus } from '$lib/utils/types';
+
+export const jobStatusEnum = pgEnum('job_status', [
+	JobStatus.Pending,
+	JobStatus.Processing,
+	JobStatus.Storing,
+	JobStatus.Done,
+	JobStatus.Failed,
+	JobStatus.Cancelled
+] as const);
 
 export const paper = pgTable('paper', {
 	id: text('id').primaryKey(),
@@ -28,7 +38,7 @@ export const job = pgTable('job', {
 	userId: text('user_id')
 		.notNull()
 		.references(() => user.id, { onDelete: 'cascade' }),
-	status: text('status').notNull().default('pending'), // pending | processing | done | failed
+	status: jobStatusEnum('status').notNull().default(JobStatus.Pending),
 	paperId: text('paper_id')
 		.references(() => paper.id, { onDelete: 'set null' }),
 	error: text('error'),
