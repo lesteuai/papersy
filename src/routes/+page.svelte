@@ -7,6 +7,7 @@
 	import FilePanel from '$lib/components/dedicated/app/FilePanel.svelte';
 	import ContentPanel from '$lib/components/dedicated/app/ContentPanel.svelte';
 	import type { PapersyFile, ChatMessage, Mode } from '$lib/utils/types';
+	import { JobStatus } from '$lib/utils/types';
 
 	const pollTimeout = 1000;
 
@@ -31,7 +32,7 @@
 
 	let jobPending = $derived(
 		selectedFileId && jobsInProgress[selectedFileId]
-			? ['pending', 'processing', 'storing'].includes(jobsInProgress[selectedFileId].status)
+			? [JobStatus.Pending, JobStatus.Processing, JobStatus.Storing].includes(jobsInProgress[selectedFileId].status as JobStatus)
 			: false
 	);
 
@@ -64,7 +65,7 @@
 		files = data.papers;
 		// Resume polling for any in-progress jobs from server
 		for (const p of data.papers) {
-			if (p.jobId && (p.jobStatus === 'pending' || p.jobStatus === 'processing' || p.jobStatus === 'storing')) {
+			if (p.jobId && (p.jobStatus === JobStatus.Pending || p.jobStatus === JobStatus.Processing || p.jobStatus === JobStatus.Storing)) {
 				jobsInProgress[p.id] = { jobId: p.jobId, status: p.jobStatus };
 				pollJobStatus(p.id, p.jobId);
 			}
@@ -93,8 +94,8 @@
 
 				jobsInProgress[paperId] = { jobId, status: jobData.status, error: jobData.error };
 
-				if (jobData.status === 'done') {
-					// Job complete — fetch the paper to get updated summary data
+				if (jobData.status === JobStatus.Done) {
+					// Job complete - fetch the paper to get updated summary data
 					const paperRes = await fetch(`/api/papers/${paperId}`);
 					if (!paperRes.ok) {
 						jobsInProgress[paperId].error = 'Failed to fetch completed paper';
@@ -116,11 +117,11 @@
 						mode = 'summary';
 					}
 					delete jobsInProgress[paperId];
-				} else if (jobData.status === 'failed') {
+				} else if (jobData.status === JobStatus.Failed) {
 					// Job failed
 					files = files.map((f) =>
 						f.id === paperId
-							? { ...f, jobStatus: 'failed', uploadError: jobData.error ?? 'Unknown error', jobId: undefined }
+							? { ...f, jobStatus: JobStatus.Failed, uploadError: jobData.error ?? 'Unknown error', jobId: undefined }
 							: f
 					);
 					delete jobsInProgress[paperId];
@@ -163,12 +164,12 @@
 				name: file.name,
 				summaryData: undefined,
 				jobId,
-				jobStatus: 'pending',
+				jobStatus: JobStatus.Pending,
 			},
 		];
 
 		// Track job and start polling
-		jobsInProgress[paperId] = { jobId, status: 'pending' };
+		jobsInProgress[paperId] = { jobId, status: JobStatus.Pending };
 		pollJobStatus(paperId, jobId);
 	}
 

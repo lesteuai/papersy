@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { JobStatus } from '$lib/utils/types';
+
 	type SummaryData = {
 		summary: string;
 		keyFindings: string[];
@@ -12,14 +14,14 @@
 		paperName = undefined,
 		jobStatus = undefined,
 		error = undefined
-	}: { data: SummaryData | null; paperName?: string; jobStatus?: string; error?: string } = $props();
+	}: { data: SummaryData | null; paperName?: string; jobStatus?: JobStatus; error?: string } = $props();
 
-	function getStatusText(status: string): string {
+	function getStatusText(status: JobStatus): string {
 		switch (status) {
-			case 'pending': return 'Queued for processing...';
-			case 'processing': return 'Processing paper...';
-			case 'storing': return 'Storing paper...';
-			case 'cancelled': return 'Cancelled.';
+			case JobStatus.Pending: return 'Queued for processing...';
+			case JobStatus.Processing: return 'Processing paper...';
+			case JobStatus.Storing: return 'Storing paper...';
+			case JobStatus.Cancelled: return 'Cancelled.';
 			default: return 'Upload failed.';
 		}
 	}
@@ -64,7 +66,7 @@
 				{/each}
 			</ul>
 		</section>
-	{:else if !data && jobStatus && jobStatus !== 'done'}
+	{:else if !data && jobStatus && jobStatus !== JobStatus.Done}
 		<section class="summary-section">
 			<h3>Status</h3>
 			<p>{getStatusText(jobStatus)}</p>

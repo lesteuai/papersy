@@ -3,6 +3,7 @@ import { db } from '$lib/server/db';
 import { paper } from '$lib/server/db/schema';
 import { eq, ne } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
+import { JobStatus } from '$lib/utils/types';
 import type { PapersyFile } from '$lib/utils/types';
 
 export const load: PageServerLoad = async ({ request }) => {

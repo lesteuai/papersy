@@ -9,6 +9,7 @@ import { ChatPromptTemplate } from '@langchain/core/prompts';
 import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters';
 import { Document } from '@langchain/core/documents';
 import { PDFParse } from 'pdf-parse';
+import { JobStatus } from '$lib/utils/types';
 import fs from 'fs/promises';
 import path from 'path';
 import type { RequestHandler } from '@sveltejs/kit';
@@ -27,7 +28,7 @@ async function processUpload(jobId: string, paperId: string, userId: string, fil
 
 		const healthy = await checkLlmHealth();
 		if (!healthy) {
-			await db.update(job).set({ status: 'failed', error: 'LLM service unavailable' }).where(eq(job.id, jobId));
+			await db.update(job).set({ status: JobStatus.Failed, error: 'LLM service unavailable' }).where(eq(job.id, jobId));
 			return;
 		}
 
@@ -48,7 +49,7 @@ async function processUpload(jobId: string, paperId: string, userId: string, fil
 		// Update job status to processing
 		await db
 			.update(job)
-			.set({ status: 'processing' })
+			.set({ status: JobStatus.Processing })
 			.where(eq(job.id, jobId));
 		
 		// Summarize
@@ -88,13 +89,13 @@ async function processUpload(jobId: string, paperId: string, userId: string, fil
 		// Update job status for vectorizing paper
 		await db
 			.update(job)
-			.set({ status: 'storing' })
+			.set({ status: JobStatus.Storing })
 			.where(eq(job.id, jobId));
 
 		// Check embedding health before vectorizing
 		const embeddingHealthy = await checkEmbeddingHealth();
 		if (!embeddingHealthy) {
-			await db.update(job).set({ status: 'failed', error: 'Embedding service unavailable' }).where(eq(job.id, jobId));
+			await db.update(job).set({ status: JobStatus.Failed, error: 'Embedding service unavailable' }).where(eq(job.id, jobId));
 			return;
 		}
 
@@ -117,17 +118,17 @@ async function processUpload(jobId: string, paperId: string, userId: string, fil
 		// Update job to done
 		await db
 			.update(job)
-			.set({ status: 'done' })
+			.set({ status: JobStatus.Done })
 			.where(eq(job.id, jobId));
 	} catch (err) {
 		if (err instanceof AbortedError) {
-			await db.update(job).set({ status: 'cancelled' }).where(eq(job.id, jobId));
+			await db.update(job).set({ status: JobStatus.Cancelled }).where(eq(job.id, jobId));
 			return;
 		}
 		const errorMessage = err instanceof Error ? err.message : 'Unknown error';
 		await db
 			.update(job)
-			.set({ status: 'failed', error: errorMessage })
+			.set({ status: JobStatus.Failed, error: errorMessage })
 			.where(eq(job.id, jobId));
 	} finally {
 		// Clean up the abort controller from the map
@@ -155,7 +156,7 @@ export const POST: RequestHandler = async ({ request }) => {
 	await db.insert(job).values({
 		id: jobId,
 		userId: session.user.id,
-		status: 'pending',
+		status: JobStatus.Pending,
 		paperId,
 	});
 

@@ -4,6 +4,7 @@
 	import ChatView from './ChatView.svelte';
 	import ChatInput from './ChatInput.svelte';
 	import type { ChatMessage, Mode, SummaryData } from '$lib/utils/types';
+	import type { JobStatus } from '$lib/utils/types';
 
 	let {
 		mode,
@@ -25,7 +26,7 @@
 		onModeChange: (m: Mode) => void;
 		onSend: (text: string) => void;
 		disabled?: boolean;
-		jobStatus?: string | undefined;
+		jobStatus?: JobStatus | undefined;
 		uploadError?: string | undefined;
 	} = $props();
 

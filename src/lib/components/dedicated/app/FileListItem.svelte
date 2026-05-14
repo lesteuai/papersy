@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PapersyFile } from '$lib/utils/types';
+	import { JobStatus } from '$lib/utils/types';
 	import WarningIcon from '$lib/icons/warning.svelte';
 
 	let {
@@ -28,9 +29,9 @@
 
 <div class="file-item" class:selected>
 	<button class="file-name" onclick={() => onSelect(file.id)}>
-		{#if file.jobStatus === 'pending' || file.jobStatus === 'processing'}
+		{#if file.jobStatus === JobStatus.Pending || file.jobStatus === JobStatus.Processing}
 			<span class="spinner" aria-label="Processing"></span>
-		{:else if file.jobStatus === 'failed' || file.jobStatus === 'cancelled'}
+		{:else if file.jobStatus === JobStatus.Failed || file.jobStatus === JobStatus.Cancelled}
 			<span class="warning-icon" aria-label="Failed"><WarningIcon /></span>
 		{/if}
 		{file.name}
