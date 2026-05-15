@@ -1,2 +1,3 @@
 - Have a dropdown menu at the file panel to change the name of the paper
 - How to deal with paper (or PDF) bigger than the context window of the LLM?
+- Replace PDF extraction of PDFParse with another library to prevent Retrieve tool from getting garbled output from vector database

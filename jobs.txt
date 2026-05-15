@@ -1,0 +1,4 @@
+- job that is processing, storing: keep polling indefinitely until receiving either done or failed
+- if task is processing, storing, show processing screen in summary, not summary in summary
+- If Summary: "Paper extraction failed", fail the entire task
+- Look into how Retrieve tool gets vector data. We are currently getting garbled data from the tool
