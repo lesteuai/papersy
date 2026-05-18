@@ -34,17 +34,17 @@ A full-stack research paper summarization and retrieval-augmented generation (RA
 
 Detailed documentation organized by topic:
 
-- [Configuration](docs/config.md) — Framework, environment variables
-- [Architecture](docs/architecture.md) — System design, key concepts, data flow
-- [src/lib Overview](docs/lib-overview.md) — Library structure, patterns, imports
-- [Components](docs/components.md) — Atomic Design system, props, usage
-- [Icons](docs/icons.md) — SVG icon library
-- [SCSS & Styling](docs/scss.md) — Theme system, breakpoints, design tokens
-- [Stores](docs/stores.md) — Svelte stores (auth, theme)
-- [Types & Utilities](docs/types.md) — Shared TypeScript types, enums (JobStatus)
-- [Static Data](docs/data.md) — Site metadata
-- [Server Modules](docs/server.md) — Database, auth, LLM orchestration
-- [Routes & API](docs/routes.md) — Page routing, REST endpoints
+- [Configuration](claude-docs/config.md) — Framework, environment variables
+- [Architecture](claude-docs/architecture.md) — System design, key concepts, data flow
+- [src/lib Overview](claude-docs/lib-overview.md) — Library structure, patterns, imports
+- [Components](claude-docs/components.md) — Atomic Design system, props, usage
+- [Icons](claude-docs/icons.md) — SVG icon library
+- [SCSS & Styling](claude-docs/scss.md) — Theme system, breakpoints, design tokens
+- [Stores](claude-docs/stores.md) — Svelte stores (auth, theme)
+- [Types & Utilities](claude-docs/types.md) — Shared TypeScript types, enums (JobStatus)
+- [Static Data](claude-docs/data.md) — Site metadata
+- [Server Modules](claude-docs/server.md) — Database, auth, LLM orchestration
+- [Routes & API](claude-docs/routes.md) — Page routing, REST endpoints
 
 ## Key Conventions
 
