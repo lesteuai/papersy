@@ -2,3 +2,5 @@
 - if task is processing, storing, show processing screen in summary, not summary in summary
 - If Summary: "Paper extraction failed", fail the entire task
 - Look into how Retrieve tool gets vector data. We are currently getting garbled data from the tool
+- Create requireSession as middleware to check all routes, instead of each route checks separately.
+- All tables in src/lib/server/db/schema.ts get updatedAt: timestamp("updated_at").$onUpdate(() => new Date())
