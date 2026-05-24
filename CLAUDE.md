@@ -38,7 +38,6 @@ Detailed documentation organized by topic:
 - [Architecture](claude-docs/architecture.md) — System design, key concepts, data flow
 - [src/lib Overview](claude-docs/lib-overview.md) — Library structure, patterns, imports
 - [Components](claude-docs/components.md) — Atomic Design system, props, usage
-- [Icons](claude-docs/icons.md) — SVG icon library
 - [SCSS & Styling](claude-docs/scss.md) — Theme system, breakpoints, design tokens
 - [Stores](claude-docs/stores.md) — Svelte stores (auth, theme)
 - [Types & Utilities](claude-docs/types.md) — Shared TypeScript types, enums (JobStatus)
