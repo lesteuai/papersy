@@ -34,16 +34,16 @@ A full-stack research paper summarization and retrieval-augmented generation (RA
 
 Detailed documentation organized by topic:
 
-- [Configuration](claude-docs/config.md) — Framework, environment variables
-- [Architecture](claude-docs/architecture.md) — System design, key concepts, data flow
-- [src/lib Overview](claude-docs/lib-overview.md) — Library structure, patterns, imports
-- [Components](claude-docs/components.md) — Atomic Design system, props, usage
-- [SCSS & Styling](claude-docs/scss.md) — Theme system, breakpoints, design tokens
-- [Stores](claude-docs/stores.md) — Svelte stores (auth, theme)
-- [Types & Utilities](claude-docs/types.md) — Shared TypeScript types, enums (JobStatus)
-- [Static Data](claude-docs/data.md) — Site metadata
-- [Server Modules](claude-docs/server.md) — Database, auth, LLM orchestration
-- [Routes & API](claude-docs/routes.md) — Page routing, REST endpoints
+- [Configuration](agent-docs/config.md) — Framework, environment variables
+- [Architecture](agent-docs/architecture.md) — System design, key concepts, data flow
+- [src/lib Overview](agent-docs/lib-overview.md) — Library structure, patterns, imports
+- [Components](agent-docs/components.md) — Atomic Design system, props, usage
+- [SCSS & Styling](agent-docs/scss.md) — Theme system, breakpoints, design tokens
+- [Stores](agent-docs/stores.md) — Svelte stores (auth, theme)
+- [Types & Utilities](agent-docs/types.md) — Shared TypeScript types, enums (JobStatus)
+- [Static Data](agent-docs/data.md) — Site metadata
+- [Server Modules](agent-docs/server.md) — Database, auth, LLM orchestration
+- [Routes & API](agent-docs/routes.md) — Page routing, REST endpoints
 
 ## Key Conventions
 
