@@ -91,7 +91,6 @@ Open http://localhost:5173 in your browser.
 | `pnpm run test` | **Dev** / CI | Run all tests (unit + E2E) |
 | `pnpm run test:e2e` | **Dev** / CI | Run end-to-end tests with Playwright |
 | `pnpm run db:generate` | **Dev** | Generate migration files from schema changes |
-| `pnpm run db:push` | **Dev** | Push schema changes directly to database (dev only) |
 | `pnpm run db:migrate` | **Prod** (deployment) | Run pending migrations on database |
 | `pnpm run db:studio` | **Dev** | Open Drizzle Studio for interactive database browser |
 | `pnpm run auth:schema` | **Dev** | Generate better-auth schema types (run after auth changes) |

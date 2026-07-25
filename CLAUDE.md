@@ -96,7 +96,7 @@ Detailed documentation organized by topic:
 npm install
 
 # Setup database
-npm run db:push
+npm run db:migrate
 
 # Generate auth schema
 npm run auth:schema
