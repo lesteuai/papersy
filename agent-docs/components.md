@@ -198,7 +198,13 @@ Single message bubble. Assistant messages render markdown-formatted HTML; user m
 |---|---|
 | `message` | `ChatMessage` |
 
-`message.role` is `'user' | 'assistant'`. User: right-aligned, primary background, plain text. Assistant: left-aligned, card background, markdown as formatted HTML. When `message.loading` is true — renders three animated bouncing dots. Assistant messages parsed with `marked.parse()` and rendered with `{@html}`, styled with `:global()` rules.
+`message.role` is `'user' | 'assistant'`. User: right-aligned, primary background, plain text. Assistant: left-aligned, card background, markdown as formatted HTML. When `message.loading` is true — renders three animated bouncing dots. Assistant messages parsed with `marked.parse()`, sanitized with `DOMPurify.sanitize()`, and rendered with `{@html}`, styled with `:global()` rules.
+
+**Sanitization.** Assistant text can quote pages found by the `webSearch` tool, so it is third-party content reaching `{@html}`. `marked.parse(message.text)` runs first, then `DOMPurify.sanitize()` on the resulting HTML string, before it reaches `{@html}`. User messages take the `{message.text}` branch instead, rendered as plain text, so they never touch `{@html}` and need no sanitizing. Sanitization happens at render, not on write, so assistant messages persisted before this change are sanitized too, every time they are read.
+
+DOMPurify runs with its default configuration on purpose. The default allow-list already covers every tag the component's `:global()` style rules target (`h1` through `h6`, `p`, `ul`, `ol`, `li`, `code`, `pre`, `blockquote`, `strong`, `em`, `a`, `hr`), while stripping `script`, `on*` event-handler attributes and `javascript:` URLs. Narrowing `ALLOWED_TAGS` would silently flatten real replies, so it should not be tightened without checking those style rules first.
+
+This depends on `ssr = false` (set in `src/routes/+layout.ts`). DOMPurify sets `isSupported = false` when constructed without a DOM, and its `sanitize` then returns the input unchanged rather than throwing. Because no component in this app runs server-side, the sanitizer always has a real DOM to work with. Turning SSR on for this route would silently disable sanitization instead of producing an error, which is also why the plain `dompurify` package is used here rather than `isomorphic-dompurify`.
 
 ### ChatView
 
