@@ -41,6 +41,7 @@ export async function extractDocument(
 	let result;
 	try {
 		if (extension === '.pdf') {
+			console.log('it reached pdf checkpoint');
 			// Use PDFParse directly (instead of MarkItDown because of DOMMatrix undefined, fake worker failed error)
 			const parser = new PDFParse({ data: buffer });
 			try {
@@ -53,6 +54,7 @@ export async function extractDocument(
 				await parser.destroy();
 			}
 		} else {
+			console.log('it did not use pdf-parse');
 			const markItDown = new MarkItDown();
 			result = await markItDown.convertBuffer(buffer, { file_extension: extension });
 		}
