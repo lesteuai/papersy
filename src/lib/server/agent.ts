@@ -4,6 +4,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { getLlm } from '$lib/server/llm';
 import { hybridSearch } from '$lib/server/retrieval';
+import { webSearch } from '$lib/server/search';
 
 const PROMPT_PATH = path.resolve('default-prompts', 'chatbot.txt');
 const promptTemplate = await fs.readFile(PROMPT_PATH, 'utf-8');
@@ -36,5 +37,5 @@ export function createProjectAgent({
 
 	const systemPrompt = promptTemplate.replaceAll('{projectName}', projectName);
 	const model = getLlm();
-	return createAgent({ model, tools: [retrieve], systemPrompt });
+	return createAgent({ model, tools: [retrieve, webSearch], systemPrompt });
 }
