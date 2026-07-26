@@ -30,8 +30,6 @@ export class EmptyExtractionError extends Error {
 function polyfillCanvasGlobals() {
 	const globals = globalThis as Record<string, unknown>;
 	if (!globals.DOMMatrix) globals.DOMMatrix = class DOMMatrix {};
-	if (!globals.ImageData) globals.ImageData = class ImageData {};
-	if (!globals.Path2D) globals.Path2D = class Path2D {};
 }
 
 // Static imports hoist above the polyfill, so markitdown-ts has to load lazily.
