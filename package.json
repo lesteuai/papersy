@@ -60,7 +60,6 @@
 		"@langchain/core": "^1.1.38",
 		"@langchain/openai": "^1.4.1",
 		"@langchain/textsplitters": "^1.0.1",
-		"@napi-rs/canvas": "^1.0.2",
 		"@tavily/core": "^0.7.6",
 		"better-auth": "~1.4.21",
 		"dompurify": "^3.4.12",

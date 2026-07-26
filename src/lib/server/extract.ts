@@ -1,7 +1,5 @@
 import { MarkItDown } from 'markitdown-ts';
-import { PDFParse } from 'pdf-parse';
 import "pdf-parse/worker";
-import '@napi-rs/canvas';
 
 const ACCEPTED_EXTENSIONS = ['.pdf', '.md', '.markdown', '.txt'] as const;
 
@@ -42,24 +40,8 @@ export async function extractDocument(
 
 	let result;
 	try {
-		if (extension === '.pdf') {
-			console.log('it reached pdf checkpoint');
-			// Use PDFParse directly (instead of MarkItDown because of DOMMatrix undefined, fake worker failed error)
-			const parser = new PDFParse({ data: buffer });
-			try {
-				console.log('it did use pdf-parse');
-				const textResult = await parser.getText();
-				// Erase page footers from PDFParse
-				textResult.text = textResult.text.replace(/--\s*\d+\s*of\s*\d+\s*--/g, '');
-				result = { markdown: textResult.text };
-			} finally {
-				await parser.destroy();
-			}
-		} else {
-			console.log('it did not use pdf-parse');
-			const markItDown = new MarkItDown();
-			result = await markItDown.convertBuffer(buffer, { file_extension: extension });
-		}
+		const markItDown = new MarkItDown();
+		result = await markItDown.convertBuffer(buffer, { file_extension: extension });
 	} catch {
 		// Corrupt or unparseable files (e.g. malformed PDF) throw rather than
 		// returning null, but both cases mean there is nothing extractable.
@@ -69,6 +51,9 @@ export async function extractDocument(
 	if (!result || !result.markdown || result.markdown.trim().length === 0) {
 		throw new EmptyExtractionError(filename);
 	}
+
+	// Remove page footer
+	result.markdown = result.markdown.replace(/--\s*\d+\s*of\s*\d+\s*--/g, '');
 
 	return { kind: EXTENSION_KIND[extension], text: result.markdown };
 }
