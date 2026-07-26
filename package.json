@@ -57,7 +57,6 @@
 		"@fontsource/inter": "^5.2.8",
 		"@fontsource/merriweather": "^5.2.11",
 		"@fontsource/ubuntu-mono": "^5.2.8",
-		"@langchain/community": "^1.1.27",
 		"@langchain/core": "^1.1.38",
 		"@langchain/openai": "^1.4.1",
 		"@langchain/textsplitters": "^1.0.1",
@@ -65,8 +64,8 @@
 		"drizzle-kit": "^0.31.8",
 		"drizzle-orm": "^0.45.1",
 		"langchain": "^1.2.39",
-		"markitdown-ts": "^0.0.10",
 		"marked": "^13.0.0",
+		"markitdown-ts": "^0.0.10",
 		"pg": "^8.20.0",
 		"postgres": "^3.4.8",
 		"zod": "^4.3.6"
