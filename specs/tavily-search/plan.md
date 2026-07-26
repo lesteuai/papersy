@@ -13,6 +13,21 @@ Add a second LangChain tool, `webSearch`, built on the official `@tavily/core` c
 - `.env.example`: add `TAVILY_API_KEY=` under the "AI and tools" section, next to `OPENROUTER_API_KEY`. Serves AC-6 (documents the variable the tool reads).
 - `package.json`: add `@tavily/core` as a dependency.
 - `agent-docs/server.md`: document the new `search.ts` module and its tool, consistent with how `retrieval.ts`/`agent.ts` are already documented there.
+- `src/lib/components/dedicated/app/ChatMessage.svelte`: wrap the existing `{@html marked.parse(message.text)}` at line 17 in `DOMPurify.sanitize(...)`. Serves AC-7.
+- `src/lib/components/dedicated/app/ChatMessage.svelte.spec.ts` (new): component test in the vitest `client` project asserting payloads are neutralized and markdown still renders. Serves AC-7.
+- `agent-docs/components.md`: note the sanitization step on the assistant render path. Serves AC-7.
+
+## AC-7 Approach (amendment)
+Sanitize at render, in the one component that uses `{@html}`. `marked.parse` produces the HTML and `DOMPurify.sanitize` cleans it immediately before it reaches the DOM, so the fix covers assistant messages already persisted before this change as well as new ones. Sanitizing on render rather than on write is what makes that true.
+
+Use DOMPurify's **default** configuration. The default allow-list already permits every tag `ChatMessage.svelte` styles through its `:global()` rules (`h1`-`h6`, `p`, `ul`, `ol`, `li`, `code`, `pre`, `blockquote`, `strong`, `em`, `a`, `hr`) while stripping `script`, event-handler attributes such as `onerror`, and `javascript:` URLs. The tight markdown allow-list from DOMPurify's own wiki is the wrong choice here: it omits `h1`-`h6` and `hr`, which would silently flatten replies and violate the second clause of AC-7.
+
+## Libraries (amendment)
+- `dompurify@3.4.12`: sanitizes the markdown-rendered HTML. Plain `dompurify`, not `isomorphic-dompurify`, because `src/routes/+layout.ts` sets `ssr = false`, so no component ever executes server-side and the jsdom dependency that `isomorphic-dompurify` pulls in buys nothing.
+
+## Risks (amendment)
+- **DOMPurify fails open without a DOM.** Confirmed in its source: the constructor sets `isSupported = false` when `window` is missing, and `sanitize` then returns the input unchanged rather than throwing. A future change setting `ssr = true` would silently disable sanitization instead of erroring. Mitigation: accept for now, given `ssr = false` is load-bearing across the whole app, and record the coupling here and in `agent-docs/components.md`.
+- **Sanitizer config drift breaks rendering silently.** Tightening `ALLOWED_TAGS` later would strip styled tags with no error. Mitigation: the AC-7 component test asserts markdown structure survives, so it fails if the config is narrowed.
 
 ## Data Model and Contracts
 No database or API route changes. New tool contract:

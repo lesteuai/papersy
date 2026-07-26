@@ -43,6 +43,27 @@ Status: complete
   - Do: Step 5 currently asserts the removed Google-query fallback (`expect(replyText.includes('google') || replyText.includes('search')).toBe(true)`), which T4 deletes. Rewrite step 5 to ask the same unrelated question ("In what year did the Berlin Wall fall?"), which `retrieve` cannot answer, and assert the reply now contains a web citation: an `http` URL in the reply text and the correct answer `1989`. Add a step 5b that explicitly asks for a web search (e.g. "Search the web for the current version of the SvelteKit framework") and asserts the reply contains an `http` URL. Keep the existing serial ordering and reply-count assertions consistent by renumbering the later `toHaveCount` expectations in steps 6 and 7 to account for the added message. Preserve the file's existing patterns: `test.step`, the `.message.assistant .markdown-content` locator, and the 150s per-reply timeout.
   - Done when: `e2e/workspace.e2e.ts` no longer asserts the Google-query fallback, contains an explicit web-search step, and `npm run test:e2e` passes end to end.
 
+## Wave 5
+Added after the Phase 5 code review surfaced an XSS path that this feature makes reachable. Spec amended with AC-7 and re-approved.
+
+- [x] T7: Add `dompurify` and sanitize the assistant markdown render path (commit d4caf59)
+  - Satisfies: AC-7
+  - Files: `package.json`, `pnpm-lock.yaml`, `src/lib/components/dedicated/app/ChatMessage.svelte`
+  - Do: Install with `npx --yes pnpm@11 add dompurify` (version 3.4.12; the project is on pnpm and plain `npm install` breaks its `node_modules` layout). In `ChatMessage.svelte`, import DOMPurify and wrap line 17's `{@html marked.parse(message.text)}` so the parsed HTML passes through `DOMPurify.sanitize(...)` before rendering. Use the **default** configuration, passing no `ALLOWED_TAGS` or `ALLOWED_ATTR`: the default allow-list covers every tag the component's `:global()` rules style (`h1`-`h6`, `p`, `ul`, `ol`, `li`, `code`, `pre`, `blockquote`, `strong`, `em`, `a`, `hr`) while stripping `script`, `on*` handlers and `javascript:` URLs. Use plain `dompurify`, not `isomorphic-dompurify`, because `src/routes/+layout.ts` sets `ssr = false`. Add a short comment on the sanitize call explaining that assistant text can carry web-search content echoed from a third-party page. Change nothing else, including the `<style>` block.
+  - Done when: `ChatMessage.svelte` renders sanitized HTML, and `npx --yes pnpm@11 run check` reports no new errors.
+
+- [x] T8: Component test for assistant message sanitization (commit b19f8a3)
+  - Satisfies: AC-7
+  - Files: `src/lib/components/dedicated/app/ChatMessage.svelte.spec.ts` (new)
+  - Do: Write the project's first real component test. It must be named `*.svelte.spec.ts` so the vitest `client` project picks it up (`vite.config.ts` routes `src/**/*.svelte.{test,spec}.{js,ts}` to headless Chrome; anything else lands in the node `server` project and will fail on DOM access). Follow `src/lib/vitest-examples/Welcome.svelte.spec.ts` for the render harness and imports. Cover both clauses of AC-7. Neutralized: an assistant message whose text contains `<script>`, `<img src=x onerror=...>`, `<iframe>`, and a `[link](javascript:alert(1))` renders with no `script` element, no `iframe` element, no `onerror` attribute, and no `javascript:` href in the DOM. Preserved: an assistant message with a heading, a bullet list, a fenced code block, bold text, and an `https://` link still renders `h2`/`ul`/`li`/`pre code`/`strong` elements and an anchor whose `href` starts with `https`. Also assert a user-role message still renders as plain text through the non-`{@html}` branch. `vite.config.ts` sets `expect: { requireAssertions: true }`, so every test needs an assertion.
+  - Done when: `npx --yes pnpm@11 exec vitest run --project client` passes with the new cases green.
+
+- [x] T9: Document the sanitization step (commit 25f8e21)
+  - Satisfies: AC-7
+  - Files: `agent-docs/components.md`
+  - Do: Read `agent-docs/components.md` and find where `ChatMessage` is documented. Record that assistant messages render through `marked.parse` then `DOMPurify.sanitize`, that user messages bypass both and render as plain text, and that the sanitizer runs at render so messages persisted before this change are covered too. Note the `ssr = false` coupling: DOMPurify sets `isSupported = false` without a DOM and its `sanitize` then returns input unchanged, so enabling SSR would silently disable sanitization. Match the file's existing style.
+  - Done when: `agent-docs/components.md` describes the sanitized render path and the `ssr = false` coupling.
+
 ## Coverage
 - AC-1: T2, T3, T4, T6
 - AC-2: T2, T3, T4, T6
@@ -50,3 +71,4 @@ Status: complete
 - AC-4: T2, T4, T6
 - AC-5: T3, T4, T6
 - AC-6: T1, T2, T3
+- AC-7: T7, T8, T9
