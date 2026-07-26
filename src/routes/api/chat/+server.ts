@@ -57,7 +57,16 @@ export const POST: RequestHandler = async ({ request }) => {
 		projectName: projectRow.name
 	});
 
-	const result = await agent.invoke({ messages: history });
+	// The health check above pings a public OpenRouter endpoint, so it cannot see an invalid
+	// key, a rate limit or a provider outage. Catch those here rather than letting them
+	// surface as a bare 500 the UI cannot explain.
+	let result;
+	try {
+		result = await agent.invoke({ messages: history });
+	} catch (err) {
+		console.error('Chat model call failed:', err instanceof Error ? err.message : err);
+		error(503, 'The chat model is unavailable right now. Try again shortly.');
+	}
 
 	const last = result.messages.at(-1);
 	const replyText = typeof last?.content === 'string' ? last.content : JSON.stringify(last?.content);
