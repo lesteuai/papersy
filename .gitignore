@@ -151,3 +151,4 @@ vite.config.ts.timestamp-*
 .pnpm-store
 .codegraph
 .playwright-mcp
+test-results
