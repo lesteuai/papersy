@@ -3,16 +3,19 @@
 	import Button from '$lib/components/atoms/Button.svelte';
 	import { loggedIn } from '$lib/stores/auth';
 	import { getAuthClient } from '$lib/auth-client';
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 
 	async function handleLogout() {
 		await getAuthClient()!.signOut();
 		loggedIn.set(false);
+		goto(resolve('/'));
 	}
 </script>
 
 <header>
 	<nav class="container">
-		<a class="logo" href="/" aria-label="Site logo">
+		<a class="logo" href={resolve('/')} aria-label="Site logo">
 			<Logo />
 		</a>
 

@@ -16,9 +16,14 @@
 	} = $props();
 
 	let menuOpen = $state(false);
+	let menuPosition = $state({ top: 0, left: 0 });
 
 	function handleToggleMenu(e: MouseEvent) {
 		e.stopPropagation();
+		if (!menuOpen) {
+			const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+			menuPosition = { top: rect.bottom, left: rect.right };
+		}
 		menuOpen = !menuOpen;
 	}
 
@@ -50,7 +55,7 @@
 			&hellip;
 		</button>
 		{#if menuOpen}
-			<div class="menu">
+			<div class="menu" style:top="{menuPosition.top}px" style:left="{menuPosition.left}px">
 				<button class="menu-item" onclick={handleRename}>Rename</button>
 				<button class="menu-item danger" onclick={handleDelete}>Delete</button>
 			</div>
@@ -116,9 +121,8 @@
 	}
 
 	.menu {
-		position: absolute;
-		right: 0;
-		top: 100%;
+		position: fixed;
+		transform: translateX(-100%);
 		z-index: 10;
 		background: var(--color--card-background);
 		border: 1px solid rgba(var(--color--text-rgb), 0.1);
