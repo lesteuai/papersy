@@ -1,5 +1,6 @@
 import { MarkItDown } from 'markitdown-ts';
 import "@napi-rs/canvas";
+import "pdf-parse/worker";
 
 const ACCEPTED_EXTENSIONS = ['.pdf', '.md', '.markdown', '.txt'] as const;
 
