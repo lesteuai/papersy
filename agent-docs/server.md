@@ -48,7 +48,7 @@ const session = await requireSession(request.headers);
 
 ## db/index.ts
 
-Exports `db` — Drizzle ORM client connected to PostgreSQL via the `postgres-js` driver. The connection string is built from `PG_HOST`, `PG_PORT`, `PG_USER`, `PG_PASSWORD`, `PG_DATABASE` and has `?sslmode=require` appended explicitly, because the managed Postgres host refuses insecure connections. Without it the failure mode is a silent hang, most visibly during `drizzle-kit migrate`. `drizzle.config.ts` builds the same string the same way for CLI migrations.
+Exports `db` — Drizzle ORM client connected to PostgreSQL via the `postgres-js` driver. The connection string is built from `PG_HOST`, `PG_PORT`, `PG_USER`, `PG_PASSWORD`, `PG_DATABASE`, `PG_SSL`, because the managed Postgres host refuses insecure connections. Without it the failure mode is a silent hang, most visibly during `drizzle-kit migrate`. `drizzle.config.ts` builds the same string the same way for CLI migrations.
 
 ```ts
 import { db } from '$lib/server/db';

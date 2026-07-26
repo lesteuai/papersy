@@ -28,7 +28,7 @@ The old `CHAT_MODEL_URL`, `EMBEDDING_URL`, `CHAT_MODEL_API_KEY` and `EMBEDDING_U
 
 ### Gotcha: `sslmode=require` is mandatory
 
-Both `src/lib/server/db/index.ts` and `drizzle.config.ts` build the connection string from the `PG_*` variables and append `?sslmode=require` themselves. The managed Postgres host refuses insecure connections, and the failure mode when this is missing is not a clear error: the connection attempt hangs silently, and `drizzle-kit migrate` stalls with no useful message. If a migration or a query hangs with no output, check that `sslmode=require` is present before looking anywhere else.
+Both `src/lib/server/db/index.ts` and `drizzle.config.ts` build the connection string from the `PG_*` variables and set `PG_SSL` to true. The managed Postgres host refuses insecure connections, and the failure mode when this is missing is not a clear error: the connection attempt hangs silently, and `drizzle-kit migrate` stalls with no useful message. If a migration or a query hangs with no output, check that `PG_SSL` set to true before looking anywhere else.
 
 ## OpenRouter Budget
 
