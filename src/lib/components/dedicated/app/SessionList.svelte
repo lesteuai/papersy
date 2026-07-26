@@ -56,7 +56,7 @@
 
 <div class="session-list">
 	<div class="header">
-		<button class="new-btn" onclick={onCreate}>New chat</button>
+		<button class="new-btn" onclick={onCreate} aria-label="New chat">New chat</button>
 	</div>
 	<div class="list">
 		{#each sessions as session (session.id)}
@@ -109,12 +109,6 @@
 		justify-content: center;
 		padding: 16px;
 		border-bottom: 1px solid rgba(var(--color--text-rgb), 0.1);
-
-		h2 {
-			margin: 0;
-			font-size: 1rem;
-			color: var(--color--text);
-		}
 	}
 
 	.new-btn {

@@ -228,12 +228,6 @@
 		display: flex;
 		flex-direction: column;
 		gap: 12px;
-
-		h2 {
-			margin: 0;
-			font-size: 1rem;
-			color: var(--color--text);
-		}
 	}
 
 	.content-header {
