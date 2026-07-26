@@ -10,13 +10,23 @@
 
 	let messages = $state<ChatMessage[]>([]);
 
+	// Bumped by every history load and by every send. A load whose token is stale by the
+	// time it resolves is dropped, so a slow fetch for a session that was still empty
+	// cannot overwrite messages the user has since sent.
+	let loadToken = 0;
+
 	async function getMessages() {
-		const res = await fetch(`/api/sessions/${sessionId}/messages`);
+		const token = ++loadToken;
+		const requestedSessionId = sessionId;
+		const res = await fetch(`/api/sessions/${requestedSessionId}/messages`);
 		if (!res.ok) return;
-		messages = await res.json();
+		const loaded = await res.json();
+		if (token !== loadToken || requestedSessionId !== sessionId) return;
+		messages = loaded;
 	}
 
 	async function handleSend(text: string) {
+		loadToken++;
 		const isFirstMessage = messages.length === 0;
 		messages = [...messages, { role: 'user', text }, { role: 'assistant', text: '', loading: true }];
 
