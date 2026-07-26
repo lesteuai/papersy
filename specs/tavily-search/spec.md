@@ -1,6 +1,6 @@
 # Spec: Tavily web search for the project agent
 
-Status: approved
+Status: implemented
 Request: add tavily search into the ai agent. only use the search when asked, or doc search doesn't give a satisfying answer
 
 ## Overview
@@ -30,3 +30,15 @@ The project agent currently answers only from the project's document knowledge b
 
 ## Open Questions
 None.
+
+## Verification
+Verified on 2026-07-26 by driving the real `createProjectAgent` against a live database, a live OpenRouter model and the live Tavily API, inspecting the tool-call trace on `result.messages` rather than inferring tool use from reply text. Harness was temporary and is not committed.
+
+- AC-1: pass (Q: "Search the web for the current stable version of Node.js." Tool trace: `["webSearch"]`. Reply cited `[Releases · nodejs/node](https://github.com/nodejs/node/releases)` and `[Node.js Releases](https://nodejs.org/en/about/previous-releases)`.)
+- AC-2: pass (Q: "In what year did the Berlin Wall fall?" against a knowledge base holding only an unrelated regulator spec. Tool trace: `["retrieve","webSearch"]`, in that order, so `retrieve` was tried first and `webSearch` followed on the empty result.)
+- AC-3: pass (Q: "What is the peak operating voltage of the QZX-88214-Nimbus?" against a knowledge base containing that fact. Tool trace: `["retrieve"]` only, no `webSearch`. Reply: "According to nimbus-spec.md, the peak operating voltage of the QZX-88214-Nimbus is 41.7 volts.")
+- AC-4: pass (AC-2 reply: `The Berlin Wall fell in 1989, specifically on November 9, according to "Fall of the Berlin Wall | History | Research Starters" (https://www.ebsco.com/research-starters/history/fall-berlin-wall), "Fall of the Berlin Wall" (https://en.wikipedia.org/wiki/Fall_of_the_Berlin_Wall) ...` Title plus URL per claim, distinct from the `<document name>` style used in the AC-3 reply.)
+- AC-5: pass (`@tavily/core` mocked to return `results: []` so the tool emitted its real `No web results found for this query.` string, driven through the real agent against an empty project. Tool trace: `["retrieve","webSearch"]`. Reply: "Neither the knowledge base nor a web search answered the question." No follow-up suggestion. A live nonsense query could not force this path, since Tavily returns results for gibberish.)
+- AC-6: pass (`TAVILY_API_KEY` set to an empty string at runtime. Tool trace: `["retrieve","webSearch"]`, no throw, no 503. Server logged `webSearch: TAVILY_API_KEY is unset, skipping web search` to stderr. Reply: "Neither the knowledge base nor a web search answered the question." Unit tests in `src/lib/server/search.spec.ts` additionally cover the thrown-error and timeout branch.)
+
+Regression suites: `vitest --project server` 26 passed across 6 files, including 4 new `webSearch` cases. `playwright test` 1 passed, covering the web-search fallback and an explicit web-search request through the browser UI.
