@@ -44,6 +44,7 @@ export async function extractDocument(
 			// Use PDFParse directly (instead of MarkItDown because of DOMMatrix undefined, fake worker failed error)
 			const parser = new PDFParse({ data: buffer });
 			try {
+				console.log('it did use pdf-parse');
 				const textResult = await parser.getText();
 				// Erase page footers from PDFParse
 				textResult.text = textResult.text.replace(/--\s*\d+\s*of\s*\d+\s*--/g, '');
