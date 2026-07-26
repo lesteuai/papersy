@@ -15,7 +15,8 @@ export default defineConfig({
 					name: 'client',
 					browser: {
 						enabled: true,
-						provider: playwright(),
+						// channel 'chrome' uses the system Chrome instead of a downloaded chromium build
+						provider: playwright({ launchOptions: { channel: 'chrome' } }),
 						instances: [{ browser: 'chromium', headless: true }]
 					},
 					include: ['src/**/*.svelte.{test,spec}.{js,ts}'],
