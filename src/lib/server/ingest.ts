@@ -24,7 +24,7 @@ function setStatus(documentId: string, status: JobStatus, error?: string) {
 		.where(eq(document.id, documentId));
 }
 
-// Extraction and the 45,000-char limit check happen in the route before a document row
+// Extraction and the MAX_CHARS limit check happen in the route before a document row
 // is created (AC-19: an oversized document never gets a row). This function assumes the
 // document row already exists and takes the already-extracted text, not a raw buffer.
 export async function ingestDocument(

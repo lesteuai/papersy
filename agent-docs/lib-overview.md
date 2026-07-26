@@ -35,7 +35,7 @@ Shared, reusable library code exported globally via the `$lib` import alias. Org
 
 - **Minimal stores** — `theme` (persistence + DOM), `loggedIn` (auth sync)
 - **Local state preferred** — Svelte runes for component-local state
-- **Client-side data flow** — every page fetches its own data client-side; there is no `+page.server.ts` anywhere in the app
+- **Client-side data flow** — every page fetches its own data client-side; there is no `+page.server.ts` anywhere in the app, only a root `+layout.server.ts` returning `{ loggedIn }`
 - **`loggedIn` is a cache** — set on successful login/signup and read by pages and `Header` to decide what to render
 
 ### Authentication
@@ -62,7 +62,7 @@ Shared, reusable library code exported globally via the `$lib` import alias. Org
 ### Document Ingestion
 
 - **Extraction** — `markitdown-ts`'s `MarkItDown.convertBuffer` handles `.pdf`, `.md`, `.markdown` and `.txt` through one API; PDF quality is unchanged since it delegates to `pdf-parse` internally
-- **Limits** — no page-count limit; 45,000 extracted characters is the only size cap
+- **Limits** — no page-count limit; the `MAX_CHARS` env var (default 500,000) sets the only size cap
 - **Background + cancellable** — `activeIngestions` (a module-level `Map<documentId, AbortController>`) lets a delete request cancel an in-flight ingestion
 
 ### Types

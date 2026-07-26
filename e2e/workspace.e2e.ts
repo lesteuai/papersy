@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { readFileSync } from 'fs';
+import { mkdtempSync, readFileSync, writeFileSync } from 'fs';
+import os from 'os';
 import path from 'path';
 import postgres from 'postgres';
 
@@ -39,7 +40,15 @@ const testPassword = 'workspace-e2e-password-1';
 const testName = 'Workspace E2E';
 
 const kbFixturePath = path.resolve('e2e/fixtures/kb.md');
-const oversizedFixturePath = path.resolve('e2e/fixtures/oversized.txt');
+
+// MAX_CHARS is operator configurable, so a fixture checked in at a fixed size stops being
+// oversized the moment the limit is raised. Generate one that is always over whatever is set.
+const maxChars = Number(readPgEnv().MAX_CHARS) || 500_000;
+const oversizedFixturePath = path.join(
+	mkdtempSync(path.join(os.tmpdir(), 'papersy-e2e-')),
+	'oversized.txt'
+);
+writeFileSync(oversizedFixturePath, 'a'.repeat(maxChars + 1000));
 
 test.describe.configure({ mode: 'serial' });
 
@@ -173,8 +182,11 @@ test('agent workspace end-to-end flow', async ({ page }) => {
 		const uploadError = page.locator('.upload-error');
 		await expect(uploadError).toBeVisible();
 		const errorText = await uploadError.innerText();
-		expect(errorText).toContain('45001');
-		expect(errorText).toContain('45000');
+		expect(errorText).toContain(String(maxChars));
+
+		// The message must name the document's real size, not just the limit.
+		const reportedCount = Number(errorText.match(/Document has (\d+) characters/)?.[1]);
+		expect(reportedCount).toBeGreaterThan(maxChars);
 
 		// Rejected upload must not have created a document row.
 		await expect(page.locator('.document-item').filter({ hasText: 'oversized.txt' })).toHaveCount(0);

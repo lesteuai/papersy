@@ -2,7 +2,7 @@
 
 Server-only modules: database access, authentication, retrieval, ingestion, and the LLM agent. Located in `src/lib/server/`.
 
-**Never import in browser code** (`.svelte` files, `+page.ts`, `+layout.ts`). Safe to import in `+server.ts` and `hooks.server.ts`. Note there is no `+page.server.ts` anywhere in the app; every page is client-fetched.
+**Never import in browser code** (`.svelte` files, `+page.ts`, `+layout.ts`). Safe to import in `+server.ts`, `hooks.server.ts` and `+layout.server.ts`. Note there is no `+page.server.ts` anywhere in the app; every page is client-fetched. The only server load is the root `+layout.server.ts`, which imports `auth` to resolve the session.
 
 ```
 src/lib/server/
@@ -158,11 +158,11 @@ Returns `[]` when both arms are empty, which is the path the agent uses to say i
 
 ## limits.ts
 
-**`MAX_CHARS = 45_000`** and **`checkCharLimit(count)`** — pure check returning `{ ok: true }` or `{ ok: false, message }` naming the actual character count and the limit. This is the only document size limit; there is no page-count limit.
+**`MAX_CHARS`** and **`checkCharLimit(count)`** — `MAX_CHARS` reads the `MAX_CHARS` env var and falls back to `500_000` when it is unset or invalid (a warning is logged for an invalid value). `checkCharLimit` is a pure check returning `{ ok: true }` or `{ ok: false, message }` naming the actual character count and the limit. This is the only document size limit; there is no page-count limit.
 
 ## ingest.ts
 
-**`ingestDocument(documentId, projectId, userId, text, signal)`** — Assumes the document row already exists and the 45,000-char check already passed (both happen in the upload route before this runs). Steps, each checking `signal.aborted` first:
+**`ingestDocument(documentId, projectId, userId, text, signal)`** — Assumes the document row already exists and the `MAX_CHARS` check already passed (both happen in the upload route before this runs). Steps, each checking `signal.aborted` first:
 1. Set status `processing`
 2. Split `text` with `RecursiveCharacterTextSplitter` (chunk size 1000, overlap 200)
 3. Set status `storing`

@@ -13,7 +13,7 @@ A full-stack project-based agent workspace. Built with SvelteKit 5 (SPA mode) + 
 
 ## High-Level Architecture
 
-**Full-stack SPA:** Pages render client-side; there is no `+page.server.ts` anywhere. Authentication via better-auth with PostgreSQL session storage. REST API exposes project, session, document and chat management. Document ingestion runs as a cancellable background task.
+**Full-stack SPA:** Pages render client-side (`ssr = false` in `src/routes/+layout.ts`); there is no `+page.server.ts` anywhere. The one server load is `src/routes/+layout.server.ts`, which resolves the better-auth session so a refresh on any route keeps the user logged in. Authentication via better-auth with PostgreSQL session storage. REST API exposes project, session, document and chat management. Document ingestion runs as a cancellable background task.
 
 **Core flow:** Upload a document → `markitdown-ts` extracts text → chunked, embedded and indexed with both a vector column and a `tsvector` column → chat message triggers hybrid search (RRF-fused vector + full-text) over the project's whole knowledge base → agent answers, citing the source document, or says it doesn't know and suggests a Google query.
 
@@ -58,7 +58,7 @@ Detailed documentation organized by topic:
 **State Management:**
 - Minimal stores (`loggedIn`, `theme`)
 - Local state via Svelte runes preferred
-- Every page fetches its own data client-side on mount; there is no `+page.server.ts` anywhere
+- Every page fetches its own data client-side on mount; there is no `+page.server.ts` anywhere. The sole exception is `src/routes/+layout.server.ts`, which returns only `{ loggedIn }`
 
 **Code Organization:**
 - Helpers defined above the code that uses them
@@ -83,7 +83,7 @@ Detailed documentation organized by topic:
 ## Gotchas & Notes
 
 - **Upload cancellation**: Deleting a document or its project aborts any in-flight ingestion mid-processing (`activeIngestions` map in `ingest-jobs.ts`)
-- **No page limit**: Uploads have no page-count limit; the only size limit is 45,000 extracted characters (`src/lib/server/limits.ts`). A long but sparse document can pass as long as its extracted text fits.
+- **No page limit**: Uploads have no page-count limit; the only size limit is the `MAX_CHARS` env var, in extracted characters, defaulting to 500,000 when unset or invalid (`src/lib/server/limits.ts`). A long but sparse document can pass as long as its extracted text fits.
 - **PDF extraction is unchanged**: `markitdown-ts` delegates PDF handling to `pdf-parse` internally, so extraction quality is identical to before this pivot. `pdf-parse` is not a direct dependency and is not imported anywhere in `src/`; it survives only transitively.
 - **Session auto-labels**: `chatSession.name` is nullable; `NULL` means the session was never explicitly renamed, and its display label is derived from the first user message at read time. Only a PATCH to `/api/sessions/[sessionId]` ever writes the column, so a user-set name can never be silently overwritten.
 - **Document statuses**: Defined in `JobStatus` enum (`src/lib/utils/types.ts`), reused directly on `document.status` (no separate `job` table). States: pending → processing → storing → done (or failed/cancelled). Client polls and resumes any document in pending/processing/storing state without a page reload.

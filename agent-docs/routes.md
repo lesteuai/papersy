@@ -1,6 +1,6 @@
 # Routes & API
 
-SvelteKit file-based routing. Full-stack SPA application with authenticated pages and REST API routes. There is no `+page.server.ts` anywhere in the app; every page fetches its own data client-side.
+SvelteKit file-based routing. Full-stack SPA application with authenticated pages and REST API routes. There is no `+page.server.ts` anywhere in the app; every page fetches its own data client-side. The one server load is the root `+layout.server.ts`, which returns `{ loggedIn }` so a refresh on any route restores the session.
 
 ## Directory Structure
 
@@ -123,7 +123,7 @@ Returns the session's messages in creation order as `{ role, text }[]`.
 GET: returns `{ id, name, kind, status, error }[]` for the project.
 POST: `FormData { file }`. Pipeline:
 1. `extractDocument(buffer, file.name)` — 400 with a message naming the accepted types (`UnsupportedTypeError`) or naming it unreadable (`EmptyExtractionError`)
-2. `checkCharLimit(extracted.text.length)` — 400 naming the actual count and the 45,000 limit if exceeded
+2. `checkCharLimit(extracted.text.length)` — 400 naming the actual count and the configured `MAX_CHARS` limit if exceeded
 3. Insert the `document` row with `status: 'pending'`
 4. Register an `AbortController` in `activeIngestions` and kick off `ingestDocument(...)` in the background (not awaited)
 5. Return `{ documentId }` immediately (202-style, though not literally a 202 status)

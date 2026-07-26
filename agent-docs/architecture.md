@@ -7,6 +7,7 @@ Papersy is a project-based agent workspace. A user owns projects; each project h
 - **`src/routes/`** — File-based routing
   - `+layout.ts`, `+layout.svelte` — app shell with SPA mode enabled
   - `+page.svelte` — project list, or `LoginCard` when logged out (no `+page.server.ts` anywhere in the app; every page fetches its own data client-side)
+  - `+layout.server.ts` — the app's only server load: resolves the better-auth session and returns `{ loggedIn }`, which `+layout.svelte` writes into the `loggedIn` store during init
   - `p/[projectId]/+layout.svelte` — project shell: session list, document list, the two-column/mobile-toggle layout
   - `p/[projectId]/+page.svelte` — empty state prompting a new chat
   - `p/[projectId]/c/[sessionId]/+page.svelte` — the chat itself
@@ -62,14 +63,14 @@ Hybrid search, implemented in `src/lib/server/retrieval.ts` and `src/lib/server/
 
 Background ingestion with cancellation support (`src/lib/server/ingest.ts`, `src/lib/server/ingest-jobs.ts`):
 - `.pdf`, `.md`, `.markdown` and `.txt` are all extracted through one `markitdown-ts` call (`MarkItDown.convertBuffer`); any other extension is rejected before a document row is created
-- There is no page-count limit; the only size limit is 45,000 extracted characters (`src/lib/server/limits.ts`). A long but sparse PDF is accepted as long as its extracted text fits.
+- There is no page-count limit; the only size limit is `MAX_CHARS` extracted characters, read from the env with a 500,000 default (`src/lib/server/limits.ts`). A long but sparse PDF is accepted as long as its extracted text fits.
 - `activeIngestions` (`ingest-jobs.ts`) holds a module-level `Map<documentId, AbortController>`; deleting a document or its project aborts any in-flight ingestion
 - Status progresses `pending` → `processing` → `storing` → `done`, or `failed` with a stored reason, or `cancelled`
 - Embedding health is checked before the storing step; if the embedding service is unreachable, ingestion fails with a stated reason
 
 ### Data Loading
 
-Every page fetches its own data client-side (no `+page.server.ts` anywhere):
+Every page fetches its own data client-side (no `+page.server.ts` anywhere; the root `+layout.server.ts` supplies only `{ loggedIn }`):
 - `/` fetches `GET /api/projects` on mount
 - The project layout fetches sessions and documents for the active project
 - The chat page fetches message history for the active session and re-fetches whenever the session route param changes

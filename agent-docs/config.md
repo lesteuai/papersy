@@ -23,6 +23,7 @@ Server-side configuration (`.env`, documented in `.env.example`):
 | `REASONING_MODEL` | Chat model id sent to OpenRouter, e.g. `google/gemma-4-31b-it` |
 | `EMBEDDING_MODEL` | Embedding model id sent to OpenRouter, e.g. `openai/text-embedding-3-small` |
 | `BODY_SIZE_LIMIT` | SvelteKit request body size limit (e.g., `100M` for document uploads) |
+| `MAX_CHARS` | Maximum extracted characters accepted per uploaded document (`src/lib/server/limits.ts`). Optional; defaults to `500000` when unset. A value that is not a positive finite number is ignored with a logged warning, so `0` does not block all uploads. This is the only document size limit; there is no page-count limit. |
 
 The old `CHAT_MODEL_URL`, `EMBEDDING_URL`, `CHAT_MODEL_API_KEY` and `EMBEDDING_URL_KEY` variables no longer exist. Chat and embeddings both go through `https://openrouter.ai/api/v1`, authenticated with the single `OPENROUTER_API_KEY`.
 
