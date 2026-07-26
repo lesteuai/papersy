@@ -56,8 +56,7 @@
 
 <div class="session-list">
 	<div class="header">
-		<h2>Chats</h2>
-		<button class="new-btn" onclick={onCreate} aria-label="New chat">+</button>
+		<button class="new-btn" onclick={onCreate}>New chat</button>
 	</div>
 	<div class="list">
 		{#each sessions as session (session.id)}
@@ -102,13 +101,12 @@
 		display: flex;
 		flex-direction: column;
 		height: 100%;
-		background-color: var(--color--card-background);
 	}
 
 	.header {
 		display: flex;
 		align-items: center;
-		justify-content: space-between;
+		justify-content: center;
 		padding: 16px;
 		border-bottom: 1px solid rgba(var(--color--text-rgb), 0.1);
 
@@ -120,16 +118,18 @@
 	}
 
 	.new-btn {
-		flex-shrink: 0;
-		width: 34px;
-		height: 34px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+		padding: 10px 14px;
 		border: none;
-		border-radius: 50%;
+		border-radius: 8px;
 		background-color: var(--color--primary);
 		color: var(--color--primary-contrast);
+		font: inherit;
+		font-size: 0.9rem;
 		cursor: pointer;
-		font-size: 1.1rem;
-		line-height: 1;
 		transition: opacity 0.2s;
 
 		&:hover {

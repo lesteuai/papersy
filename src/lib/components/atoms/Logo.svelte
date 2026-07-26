@@ -3,7 +3,7 @@
 </script>
 
 <div class="logo">
-	<img src="images/le-steu-logo.png" alt="Le Steu AI Logo">
+	<img src="/images/le-steu-logo.png" alt="Le Steu AI Logo">
 </div>
 
 <style lang="scss">

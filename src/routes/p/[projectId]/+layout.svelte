@@ -119,7 +119,6 @@
 				/>
 			{:else}
 				<div class="docs-panel">
-					<h2>Docs</h2>
 					<DocumentList {projectId} />
 				</div>
 			{/if}
