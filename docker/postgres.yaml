@@ -6,24 +6,10 @@ services:
     container_name: postgres
     environment:
       POSTGRES_PASSWORD: 1
-    networks:
-      - myNet
     ports:
       - 5432:5432
     volumes:
       - postgres:/var/lib/postgresql
-  
-  adminer:
-    image: adminer:latest
-    networks:
-      - myNet
-    ports:
-      - 8081:8080
-
-
-networks:
-  myNet:
-    external: true
 
 volumes:
   postgres:
