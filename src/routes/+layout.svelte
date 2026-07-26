@@ -1,15 +1,18 @@
 <script>
 	import '$lib/scss/global.scss';
 	import Header from '$lib/components/organisms/Header.svelte';
-	import { page } from '$app/state';
+	// import { page } from '$app/state';
 	import { description, image, keywords, title, siteBaseUrl } from '$lib/data/meta';
 
 	let { children } = $props();
 
-	const segment = $derived(page.url.pathname.slice(1));
-	const pageTitle = $derived(
-		segment ? `${segment.charAt(0).toUpperCase() + segment.slice(1)} | ${title}` : title
-	);
+	// Leave generated title for now, since they create name based on route, instead of getting name from the session or project name
+	// const segment = $derived(page.url.pathname.slice(1));
+	// const pageTitle = $derived(
+	// 	segment ? `${segment.charAt(0).toUpperCase() + segment.slice(1)} | ${title}` : title
+	// );
+	
+	const pageTitle = title;
 </script>
 
 <svelte:head>
