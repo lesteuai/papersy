@@ -1,13 +1,9 @@
 import { createAgent, tool } from 'langchain';
 import { z } from 'zod';
-import fs from 'fs/promises';
-import path from 'path';
 import { getLlm } from '$lib/server/llm';
 import { hybridSearch } from '$lib/server/retrieval';
 import { webSearch } from '$lib/server/search';
-
-const PROMPT_PATH = path.resolve('default-prompts', 'chatbot.txt');
-const promptTemplate = await fs.readFile(PROMPT_PATH, 'utf-8');
+import { getDefaultPrompt } from './system-prompt';
 
 export function createProjectAgent({
 	projectId,
@@ -35,7 +31,7 @@ export function createProjectAgent({
 		}
 	);
 
-	const systemPrompt = promptTemplate.replaceAll('{projectName}', projectName);
+	const systemPrompt = getDefaultPrompt(projectName);
 	const model = getLlm();
 	return createAgent({ model, tools: [retrieve, webSearch], systemPrompt });
 }
