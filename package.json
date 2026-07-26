@@ -60,6 +60,7 @@
 		"@langchain/core": "^1.1.38",
 		"@langchain/openai": "^1.4.1",
 		"@langchain/textsplitters": "^1.0.1",
+		"@tavily/core": "^0.7.6",
 		"better-auth": "~1.4.21",
 		"drizzle-kit": "^0.31.8",
 		"drizzle-orm": "^0.45.1",
