@@ -16,11 +16,19 @@ async function searchVector(projectId: string, userId: string, queryEmbedding: n
 	return result.map((row) => row.id as string);
 }
 
+// plainto_tsquery joins terms with AND, so a chunk only matches when it contains every
+// term of the question. That makes the full-text arm return nothing for most natural
+// questions and quietly reduces hybrid search to vector-only. Swapping the operators to
+// OR lets a chunk carrying the one distinguishing term compete. plainto_tsquery still
+// does the parsing and sanitising, so the rewritten text is safe to cast back.
 async function searchFullText(projectId: string, userId: string, queryText: string): Promise<string[]> {
 	const result = await db.execute(sql`
-		SELECT id FROM document_chunk, plainto_tsquery('english', ${queryText}) q
-		WHERE project_id = ${projectId} AND user_id = ${userId} AND tsv @@ q
-		ORDER BY ts_rank_cd(tsv, q) DESC LIMIT ${CANDIDATE_DEPTH}
+		WITH q AS (
+			SELECT replace(plainto_tsquery('english', ${queryText})::text, '&', '|')::tsquery AS query
+		)
+		SELECT document_chunk.id FROM document_chunk, q
+		WHERE project_id = ${projectId} AND user_id = ${userId} AND tsv @@ q.query
+		ORDER BY ts_rank_cd(tsv, q.query) DESC LIMIT ${CANDIDATE_DEPTH}
 	`);
 	return result.map((row) => row.id as string);
 }
