@@ -22,6 +22,7 @@ Server-side configuration (`.env`, documented in `.env.example`):
 | `OPENROUTER_API_KEY` | Bearer token for every OpenRouter call: chat, embeddings, health checks, and the budget checks below |
 | `REASONING_MODEL` | Chat model id sent to OpenRouter, e.g. `google/gemma-4-31b-it` |
 | `EMBEDDING_MODEL` | Embedding model id sent to OpenRouter, e.g. `openai/text-embedding-3-small` |
+| `TAVILY_API_KEY` | API key for the Tavily web search behind the agent's `webSearch` tool (`src/lib/server/search.ts`). Optional. There is no health check for it, so when it is unset the tool logs `webSearch: TAVILY_API_KEY is unset` to stderr and returns "Web search is unavailable." to the agent. Chat keeps working and falls back to knowledge-base-only answers; the only signal of a missing key is that server log line. |
 | `BODY_SIZE_LIMIT` | SvelteKit request body size limit (e.g., `100M` for document uploads) |
 | `MAX_CHARS` | Maximum extracted characters accepted per uploaded document (`src/lib/server/limits.ts`). Optional; defaults to `500000` when unset. A value that is not a positive finite number is ignored with a logged warning, so `0` does not block all uploads. This is the only document size limit; there is no page-count limit. |
 

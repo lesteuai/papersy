@@ -150,8 +150,12 @@ test('agent workspace end-to-end flow', async ({ page }) => {
 		const assistantReplies = page.locator('.message.assistant .markdown-content');
 		await expect(assistantReplies).toHaveCount(2, { timeout: 150_000 });
 		const replyText = (await assistantReplies.nth(1).innerText()).toLowerCase();
-		expect(replyText).toContain('http');
 		expect(replyText).toContain('1989');
+
+		// Assert on the rendered link, not the text. marked turns "[title](url)" into an anchor
+		// whose innerText is the title alone, so a text search for "http" only passes when the
+		// model happens to emit a bare URL instead.
+		await expect(assistantReplies.nth(1).locator('a[href^="http"]')).not.toHaveCount(0);
 	});
 
 	await test.step('5b. explicitly ask to search the web and expect a cited web source', async () => {
@@ -162,8 +166,7 @@ test('agent workspace end-to-end flow', async ({ page }) => {
 
 		const assistantReplies = page.locator('.message.assistant .markdown-content');
 		await expect(assistantReplies).toHaveCount(3, { timeout: 150_000 });
-		const replyText = (await assistantReplies.nth(2).innerText()).toLowerCase();
-		expect(replyText).toContain('http');
+		await expect(assistantReplies.nth(2).locator('a[href^="http"]')).not.toHaveCount(0);
 	});
 
 	const renamedSessionName = `Renamed Chat ${runId}`;
