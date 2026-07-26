@@ -8,8 +8,9 @@ Server-only modules: database access, authentication, retrieval, ingestion, and 
 src/lib/server/
 ├── auth.ts           <- better-auth instance
 ├── llm.ts            <- OpenAI-compatible clients against OpenRouter (chat, embeddings, health checks)
-├── agent.ts           <- createProjectAgent: LangChain agent with a retrieve tool
+├── agent.ts           <- createProjectAgent: LangChain agent with a retrieve tool and a webSearch tool
 ├── retrieval.ts        <- hybridSearch: vector arm + full-text arm, fused with RRF
+├── search.ts            <- webSearch: LangChain tool wrapping the Tavily web search SDK
 ├── rrf.ts               <- fuseRrf: pure Reciprocal Rank Fusion, no database access
 ├── extract.ts           <- extractDocument: markitdown-ts dispatch per file extension
 ├── limits.ts             <- MAX_CHARS and checkCharLimit
@@ -132,9 +133,23 @@ Verified working values: `REASONING_MODEL=google/gemma-4-31b-it`, `EMBEDDING_MOD
 **`createProjectAgent({ projectId, userId, projectName })`** — Builds a LangChain `createAgent`:
 1. Defines a `retrieve` tool (`responseFormat: 'content_and_artifact'`) that calls `hybridSearch(projectId, userId, query)` and serializes each chunk as `Source: <document name>\n---\n<content>\n---`
 2. Loads `default-prompts/chatbot.txt` once at module load and interpolates `{projectName}`
-3. Returns the agent built from `getLlm()`, the `retrieve` tool, and the interpolated system prompt
+3. Returns the agent built from `getLlm()`, both the `retrieve` tool and the `webSearch` tool (imported from `search.ts`), and the interpolated system prompt
 
 The caller (`/api/chat`) invokes the agent with the full prior message history plus the new user message, and reads the final assistant message off `result.messages.at(-1)`.
+
+Whether the agent calls `retrieve`, `webSearch`, both, or neither for a given user message is governed entirely by the system prompt in `default-prompts/chatbot.txt`, not by code in `agent.ts`.
+
+## search.ts
+
+**`webSearch`** — A LangChain tool giving the project agent web search, built with `tool()` the same way `retrieve` is built in `agent.ts`. Takes `{ query: string }` and uses `responseFormat: 'content_and_artifact'`, so it returns a `[content, artifact]` tuple:
+- Content: each Tavily result serialized as `Title: <title>\nURL: <url>\n---\n<content>\n---`, joined with a blank line between results. This citation shape (`Title:` / `URL:`) is distinct from the `Source: <document name>` shape `retrieve` uses for knowledge-base chunks.
+- Artifact: the raw Tavily result array, or `[]` when there are no results or the call failed.
+
+Wraps the `@tavily/core` SDK (version `0.7.6`). Builds a client with `tavily({ apiKey: env.TAVILY_API_KEY })` and calls `client.search(query, { maxResults: 5, timeout: 8 })`, where `maxResults: 5` matches the hybrid-search chunk count from `retrieval.ts` and `timeout` is in seconds. Reads `TAVILY_API_KEY` via `$env/dynamic/private`.
+
+Returns `'No web results found for this query.'` with an empty artifact when Tavily returns zero results.
+
+Unlike the OpenRouter chat and embedding services, which are pinged via `checkLlmHealth`/`checkEmbeddingHealth` before use and can return a 503 (see `llm.ts` above), `webSearch` has no health check and degrades silently. If `TAVILY_API_KEY` is unset, or the `client.search` call throws (API error or timeout), the tool logs to `console.error` and returns `'Web search is unavailable.'` with an empty artifact instead of throwing. This means the agent always gets a usable tool result and falls back to its normal knowledge-base-only behavior; chat is never blocked by Tavily being unavailable.
 
 ## retrieval.ts
 
@@ -144,7 +159,7 @@ The caller (`/api/chat`) invokes the agent with the full prior message history p
 3. Fuses both id lists with `fuseRrf` down to 5 ids
 4. Hydrates those ids with their content and source document name in one query
 
-Returns `[]` when both arms are empty, which is the path the agent uses to say it does not know and suggest a Google query.
+Returns `[]` when both arms are empty, which is the path that sends the agent on to `webSearch` before it concludes it does not know.
 
 ## rrf.ts
 
