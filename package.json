@@ -60,7 +60,6 @@
 		"@langchain/core": "^1.1.38",
 		"@langchain/openai": "^1.4.1",
 		"@langchain/textsplitters": "^1.0.1",
-		"@napi-rs/canvas": "^1.0.2",
 		"@tavily/core": "^0.7.6",
 		"better-auth": "~1.4.21",
 		"dompurify": "^3.4.12",
@@ -69,6 +68,7 @@
 		"langchain": "^1.2.39",
 		"marked": "^13.0.0",
 		"markitdown-ts": "^0.0.10",
+		"pdf-parse": "^2.4.5",
 		"pg": "^8.20.0",
 		"postgres": "^3.4.8",
 		"zod": "^4.3.6"

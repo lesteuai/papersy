@@ -1,3 +1,6 @@
+import { MarkItDown } from 'markitdown-ts';
+import { PDFParse } from 'pdf-parse';
+
 const ACCEPTED_EXTENSIONS = ['.pdf', '.md', '.markdown', '.txt'] as const;
 
 type ExtractKind = 'pdf' | 'markdown' | 'text';
@@ -23,26 +26,6 @@ export class EmptyExtractionError extends Error {
 	}
 }
 
-// pdfjs-dist (pulled in by markitdown-ts via pdf-parse) builds a DOMMatrix at
-// module scope and only polyfills it from the native @napi-rs/canvas package,
-// which does not survive bundling into a serverless function. Text extraction
-// never renders anything, so empty stubs are enough to get the module evaluated.
-function polyfillCanvasGlobals() {
-	const globals = globalThis as Record<string, unknown>;
-	if (!globals.DOMMatrix) globals.DOMMatrix = class DOMMatrix {};
-}
-
-// Static imports hoist above the polyfill, so markitdown-ts has to load lazily.
-let markitdown: typeof import('markitdown-ts') | null = null;
-
-async function getMarkItDown() {
-	if (!markitdown) {
-		polyfillCanvasGlobals();
-		markitdown = await import('markitdown-ts');
-	}
-	return new markitdown.MarkItDown();
-}
-
 function getExtension(filename: string): (typeof ACCEPTED_EXTENSIONS)[number] {
 	const match = ACCEPTED_EXTENSIONS.find((ext) => filename.toLowerCase().endsWith(ext));
 	if (!match) throw new UnsupportedTypeError(filename);
@@ -55,10 +38,23 @@ export async function extractDocument(
 ): Promise<{ kind: ExtractKind; text: string }> {
 	const extension = getExtension(filename);
 
-	const markItDown = await getMarkItDown();
 	let result;
 	try {
-		result = await markItDown.convertBuffer(buffer, { file_extension: extension });
+		if (extension === '.pdf') {
+			// Use PDFParse directly (instead of MarkItDown because of DOMMatrix undefined, fake worker failed error)
+			const parser = new PDFParse({ data: buffer });
+			try {
+				const textResult = await parser.getText();
+				// Erase page footers from PDFParse
+				textResult.text = textResult.text.replace(/--\s*\d+\s*of\s*\d+\s*--/g, '');
+				result = { markdown: textResult.text };
+			} finally {
+				await parser.destroy();
+			}
+		} else {
+			const markItDown = new MarkItDown();
+			result = await markItDown.convertBuffer(buffer, { file_extension: extension });
+		}
 	} catch {
 		// Corrupt or unparseable files (e.g. malformed PDF) throw rather than
 		// returning null, but both cases mean there is nothing extractable.
