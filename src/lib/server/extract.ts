@@ -1,5 +1,3 @@
-import { MarkItDown } from 'markitdown-ts';
-
 const ACCEPTED_EXTENSIONS = ['.pdf', '.md', '.markdown', '.txt'] as const;
 
 type ExtractKind = 'pdf' | 'markdown' | 'text';
@@ -25,6 +23,28 @@ export class EmptyExtractionError extends Error {
 	}
 }
 
+// pdfjs-dist (pulled in by markitdown-ts via pdf-parse) builds a DOMMatrix at
+// module scope and only polyfills it from the native @napi-rs/canvas package,
+// which does not survive bundling into a serverless function. Text extraction
+// never renders anything, so empty stubs are enough to get the module evaluated.
+function polyfillCanvasGlobals() {
+	const globals = globalThis as Record<string, unknown>;
+	if (!globals.DOMMatrix) globals.DOMMatrix = class DOMMatrix {};
+	if (!globals.ImageData) globals.ImageData = class ImageData {};
+	if (!globals.Path2D) globals.Path2D = class Path2D {};
+}
+
+// Static imports hoist above the polyfill, so markitdown-ts has to load lazily.
+let markitdown: typeof import('markitdown-ts') | null = null;
+
+async function getMarkItDown() {
+	if (!markitdown) {
+		polyfillCanvasGlobals();
+		markitdown = await import('markitdown-ts');
+	}
+	return new markitdown.MarkItDown();
+}
+
 function getExtension(filename: string): (typeof ACCEPTED_EXTENSIONS)[number] {
 	const match = ACCEPTED_EXTENSIONS.find((ext) => filename.toLowerCase().endsWith(ext));
 	if (!match) throw new UnsupportedTypeError(filename);
@@ -37,7 +57,7 @@ export async function extractDocument(
 ): Promise<{ kind: ExtractKind; text: string }> {
 	const extension = getExtension(filename);
 
-	const markItDown = new MarkItDown();
+	const markItDown = await getMarkItDown();
 	let result;
 	try {
 		result = await markItDown.convertBuffer(buffer, { file_extension: extension });
