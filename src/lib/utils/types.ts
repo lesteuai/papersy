@@ -7,27 +7,30 @@ export enum JobStatus {
 	Cancelled = 'cancelled'
 }
 
-export type SummaryData = {
-	summary: string;
-	keyFindings: string[];
-	methodology: string;
-	limitations: string;
-	references: string[];
-};
-
-export type PapersyFile = {
+export type Project = {
 	id: string;
 	name: string;
-	summaryData?: SummaryData;
-	jobId?: string;
-	jobStatus?: JobStatus;
-	uploadError?: string | undefined;
+	createdAt?: string;
+};
+
+export type Session = {
+	id: string;
+	projectId: string;
+	name: string | null;
+	label: string;
+	createdAt?: string;
+};
+
+export type Document = {
+	id: string;
+	name: string;
+	kind: 'pdf' | 'markdown' | 'text';
+	status: JobStatus;
+	error?: string | null;
 };
 
 export type ChatMessage = {
-	role: 'user' | 'ai';
+	role: 'user' | 'assistant';
 	text: string;
 	loading?: boolean;
 };
-
-export type Mode = 'summary' | 'chat';

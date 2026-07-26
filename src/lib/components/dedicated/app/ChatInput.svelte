@@ -29,7 +29,7 @@
 <div class="chat-input" class:disabled>
 	<textarea
 		bind:value={text}
-		placeholder="Chat box for Q&A the paper"
+		placeholder="Ask about your project's documents"
 		rows="1"
 		onkeydown={handleKeydown}
 		disabled={disabled}

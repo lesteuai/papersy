@@ -4,12 +4,10 @@ if (!process.env.PG_USER || !process.env.PG_PASSWORD || !process.env.PG_HOST || 
 	throw new Error('Missing required PostgreSQL environment variables: PG_USER, PG_PASSWORD, PG_HOST, PG_PORT, PG_DATABASE');
 }
 
-const dbUrl = `postgresql://${process.env.PG_USER}:${process.env.PG_PASSWORD}@${process.env.PG_HOST}:${process.env.PG_PORT}/${process.env.PG_DATABASE}`;
+const dbUrl = `postgresql://${process.env.PG_USER}:${process.env.PG_PASSWORD}@${process.env.PG_HOST}:${process.env.PG_PORT}/${process.env.PG_DATABASE}?${process.env.PG_SSL === 'true' ? 'channel_binding=require&sslmode=require' : '' }`;
 
 export default defineConfig({
 	schema: './src/lib/server/db/schema.ts',
 	dialect: 'postgresql',
-	dbCredentials: { url: dbUrl },
-	verbose: true,
-	strict: true
+	dbCredentials: { url: dbUrl }
 });

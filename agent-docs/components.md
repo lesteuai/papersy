@@ -16,13 +16,15 @@ Import via `$lib/components/{layer}/ComponentName.svelte` or `$lib/components/de
 | Image | atom | src, alt, fullBleed, formats, widths | — | |
 | Logo | atom | animated | — | |
 | LoginCard | dedicated/app | `onLogin`, `onSignUp` | — | async; shows error + loading state |
-| FilePanel | dedicated/app | files, selectedFileId, uploading?, onUpload, onSelect, onDelete | — | uploading disables button |
-| FileListItem | dedicated/app | file, selected, onSelect, onDelete | — | Shows spinner when processing; warning icon when failed |
-| SummaryView | dedicated/app | `data`, `paperName?`, `jobStatus?`, `error?` | — | |
+| ProjectList | dedicated/app | projects, selectedId?, onCreate, onSelect, onRename, onDelete | — | Owns the create form and the rename dialog |
+| ProjectListItem | dedicated/app | project, selected, onSelect, onRenameRequest, onDelete | — | `[...]` dropdown menu; closes on click-outside |
+| SessionList | dedicated/app | sessions, selectedId?, onCreate, onSelect, onRename, onDelete | — | Owns the rename dialog for sessions |
+| RenameDialog | dedicated/app | open, currentValue, title?, onSubmit, onCancel | — | Shared by ProjectList and SessionList; validates via `validateName` |
+| DocumentList | dedicated/app | projectId | — | Owns its own fetch/poll/upload state; polls every 1s while any document is ingesting |
+| DocumentListItem | dedicated/app | document, onDelete | — | Spinner while in progress; alert icon when failed; check icon when done |
+| ChatView | dedicated/app | messages, onSend | — | Composes `ChatInput` itself; derives disabled from `messages.some(m => m.loading)` |
 | ChatMessage | dedicated/app | `message` | — | Renders animated dots when loading |
-| ChatView | dedicated/app | `messages` | — | |
 | ChatInput | dedicated/app | onSend, disabled? | — | |
-| ContentPanel | dedicated/app | mode, messages, summaryData, onBack, onModeChange, onSend, disabled?, jobStatus?, uploadError? | — | |
 
 ## Atoms
 
@@ -91,9 +93,9 @@ Static top nav. Position: static.
 
 ## Dedicated App Components
 
-Page-specific components for the Papersy app. Import via `$lib/components/dedicated/app/ComponentName.svelte`.
+Page-specific components for the project workspace. Import via `$lib/components/dedicated/app/ComponentName.svelte`.
 
-Types are defined in `$lib/utils/types.ts`: `SummaryData`, `PapersyFile`, `ChatMessage`, `Mode`
+Types are defined in `$lib/utils/types.ts`: `Project`, `Session`, `Document`, `ChatMessage`, `JobStatus`.
 
 ### LoginCard
 
@@ -107,83 +109,119 @@ Centered login/sign-up card with mode toggle.
 - Returns `null` on success, an error message string on failure
 - Shows loading state (e.g., "Logging in..." or "Signing up...") and disables button while loading
 - Toggle between Sign In and Sign Up modes; both modes reset form and error when switching
+- Sign-up succeeds without an email verification round trip
 
-### FilePanel
+### ProjectList
 
-Left sidebar for file management.
-
-| Prop | Type | Description |
-|---|---|---|
-| `files` | `PapersyFile[]` | Papers to display |
-| `selectedFileId` | `string \| null` | Currently selected ID |
-| `uploading?` | `boolean` | Upload in progress; button shows "Processing..." and is disabled |
-| `onUpload` | `(file: File) => void` | Called when user selects a PDF |
-| `onSelect` | `(id: string) => void` | Called when user clicks a file |
-| `onDelete` | `(id: string) => void` | Called when user deletes a file |
-
-### FileListItem
-
-Single file row with delete dropdown.
+Left-panel list on `/`: create form, item list, rename dialog.
 
 | Prop | Type |
 |---|---|
-| `file` | `PapersyFile` |
-| `selected` | `boolean` |
+| `projects` | `Project[]` |
+| `selectedId?` | `string \| null` |
+| `onCreate` | `(name: string) => void` |
 | `onSelect` | `(id: string) => void` |
+| `onRename` | `(id: string, name: string) => void` |
 | `onDelete` | `(id: string) => void` |
 
-Renders filename as button, `[...]` dropdown menu with Delete option. Menu closes on click-outside. Shows a CSS spinner when `file.jobStatus === 'pending' | 'processing'`; amber warning icon when `file.jobStatus === 'failed' | 'cancelled'`.
+Validates the new-project name client-side with `validateName` before calling `onCreate`; shows the validation message inline on failure. Owns a `RenameDialog` instance, opened via `ProjectListItem`'s `onRenameRequest`.
 
-### SummaryView
+### ProjectListItem
 
-Scrollable summary with 5 sections: Summary, Key Findings, Methodology, Limitations, References.
+Single project row with a `[...]` dropdown menu (Rename, Delete).
 
 | Prop | Type |
 |---|---|
-| `data` | `SummaryData \| null` |
-| `paperName?` | `string` |
-| `jobStatus?` | `string` |
-| `error?` | `string` |
+| `project` | `Project` |
+| `selected` | `boolean` |
+| `onSelect` | `(id: string) => void` |
+| `onRenameRequest` | `(id: string) => void` |
+| `onDelete` | `(id: string) => void` |
 
-- When `data` is present: renders the full 5-section summary.
-- When `data` is null and `jobStatus` is one of pending/processing/storing/failed/cancelled: shows a "Status" section (using `.summary-section` style) with a human-readable description via `getStatusText()` helper. If `error` is also set (i.e. `jobStatus === 'failed'`), shows an "Error" section below it in the same style.
-- When `data` is null and no `jobStatus`: shows a placeholder message.
-- `flex: 1`, `overflow-y: auto`.
+Menu closes on click-outside (`onclick` handlers call `e.stopPropagation()`).
+
+### SessionList
+
+Left-panel "Chats" tab inside a project: session list, new-session button, rename dialog.
+
+| Prop | Type |
+|---|---|
+| `sessions` | `Session[]` |
+| `selectedId?` | `string \| null` |
+| `onCreate` | `() => void` |
+| `onSelect` | `(id: string) => void` |
+| `onRename` | `(id: string, name: string) => void` |
+| `onDelete` | `(id: string) => void` |
+
+Each row shows `session.label` (the derived display label), not `session.name` directly. Owns its own `RenameDialog` instance and per-row dropdown menu state (`openMenuId`).
+
+### RenameDialog
+
+Shared modal used by both `ProjectList` and `SessionList` for renaming.
+
+| Prop | Type |
+|---|---|
+| `open` | `boolean` |
+| `currentValue` | `string` |
+| `title?` | `string` (default `'Rename'`) |
+| `onSubmit` | `(name: string) => void` |
+| `onCancel` | `() => void` |
+
+On open, seeds its input from `currentValue`, clears any prior error, and focuses the input. Validates with `validateName` on submit and shows the message inline on failure rather than calling `onSubmit`.
+
+### DocumentList
+
+Left-panel "Docs" tab inside a project: upload control, list, and its own polling.
+
+| Prop | Type |
+|---|---|
+| `projectId` | `string` |
+
+Fetches `GET /api/projects/:id/documents` itself and re-polls every 1 second while any document is `pending`, `processing` or `storing`, so ingestion status reaches `done` without a page reload. Accepts `.pdf,.md,.markdown,.txt` on its file input. Uploads via `POST /api/projects/:id/documents` and shows the returned error message inline on rejection.
+
+### DocumentListItem
+
+Single document row with a status icon.
+
+| Prop | Type |
+|---|---|
+| `document` | `Document` |
+| `onDelete` | `(id: string) => void` |
+
+Spinning circle icon while `pending`/`processing`/`storing`; alert icon when `failed`; check icon when `done`.
 
 ### ChatMessage
 
-Single message bubble. AI messages render markdown-formatted HTML; user messages are plain text.
+Single message bubble. Assistant messages render markdown-formatted HTML; user messages are plain text.
 
 | Prop | Type |
 |---|---|
 | `message` | `ChatMessage` |
 
-User: right-aligned, primary background, plain text. AI: left-aligned, card background, markdown as formatted HTML. When `message.loading` is true — renders three animated bouncing dots. AI messages parsed with `marked.parse()` and rendered with `{@html}`, styled with `:global()` rules.
+`message.role` is `'user' | 'assistant'`. User: right-aligned, primary background, plain text. Assistant: left-aligned, card background, markdown as formatted HTML. When `message.loading` is true — renders three animated bouncing dots. Assistant messages parsed with `marked.parse()` and rendered with `{@html}`, styled with `:global()` rules.
 
 ### ChatView
 
-Scrollable message list. Auto-scrolls to bottom on new messages via `$effect`.
-
-### ChatInput
-
-Textarea + send button. Enter submits, Shift+Enter newline. When `disabled` — textarea and send button are disabled with reduced opacity.
-
-### ContentPanel
-
-Full right-side panel: mode toggle + content view + chat input.
+Scrollable message list. Composes `ChatInput` itself (the parent page no longer renders `ChatInput` separately).
 
 | Prop | Type |
 |---|---|
-| `mode` | `'summary' \| 'chat'` |
 | `messages` | `ChatMessage[]` |
-| `summaryData` | `SummaryData \| null` |
-| `paperName?` | `string` |
-| `onBack` | `() => void` |
-| `onModeChange` | `(mode: 'summary' \| 'chat') => void` |
+| `onSend` | `(text: string) => void` |
+
+Derives its in-flight disabled state as `messages.some((message) => message.loading)` and passes that to the composed `ChatInput`. Auto-scrolls to bottom on new messages via `$effect`. Shows an empty-state hint when `messages.length === 0`.
+
+### ChatInput
+
+Textarea + send button. Enter submits, Shift+Enter newline.
+
+| Prop | Type |
+|---|---|
 | `onSend` | `(text: string) => void` |
 | `disabled?` | `boolean` |
-| `uploadError?` | `string` |
 
-- `disabled` — disables Chat tab and ChatInput (e.g., while paper is being processed); Summary tab is always accessible
-- `jobStatus` — passed to SummaryView so it can display the current job state when no summary data is available
-- `uploadError` — passed to SummaryView as `error` prop; also disables Chat tab and ChatInput when set
+When `disabled` — textarea and send button are disabled with reduced opacity, and the send button is also disabled when the textarea is empty/whitespace-only.
+
+## Deleted
+
+`SummaryView`, `ContentPanel`, `FilePanel` and `FileListItem` are gone along with the paper-summarization feature they served.

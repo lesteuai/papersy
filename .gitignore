@@ -146,3 +146,9 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Misc
+.pnpm-store
+.codegraph
+.playwright-mcp
+test-results
