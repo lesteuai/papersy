@@ -5,16 +5,9 @@
 	import LoginCard from '$lib/components/dedicated/app/LoginCard.svelte';
 	import ProjectList from '$lib/components/dedicated/app/ProjectList.svelte';
 	import type { Project } from '$lib/utils/types';
-	import { onMount } from 'svelte';
 
 	let projects = $state<Project[]>([]);
 	let apiError = $state<string | null>(null);
-	let { data } = $props();
-	
-	// Sync loggedIn store from server session on mount
-	onMount(() => {
-		if (data.loggedIn) loggedIn.set(true);
-	});
 
 	async function getProjects() {
 		const res = await fetch('/api/projects');
