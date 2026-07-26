@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { ChatMessage } from '$lib/utils/types';
 	import { marked } from 'marked';
+	import DOMPurify from 'dompurify';
 
 	let { message }: { message: ChatMessage } = $props();
 </script>
@@ -14,7 +15,10 @@
 			<span class="dot" style="animation-delay: 300ms;"></span>
 		</p>
 	{:else if message.role === 'assistant'}
-		<div class="markdown-content">{@html marked.parse(message.text)}</div>
+		<!-- Assistant text can quote pages found by the webSearch tool, so it is third-party
+		content reaching {@html}. Default DOMPurify config: its allow-list already covers every
+		tag styled below, and narrowing it would strip headings and rules from real replies. -->
+		<div class="markdown-content">{@html DOMPurify.sanitize(marked.parse(message.text) as string)}</div>
 	{:else}
 		<p>{message.text}</p>
 	{/if}

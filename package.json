@@ -62,6 +62,7 @@
 		"@langchain/textsplitters": "^1.0.1",
 		"@tavily/core": "^0.7.6",
 		"better-auth": "~1.4.21",
+		"dompurify": "^3.4.12",
 		"drizzle-kit": "^0.31.8",
 		"drizzle-orm": "^0.45.1",
 		"langchain": "^1.2.39",
