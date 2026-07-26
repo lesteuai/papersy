@@ -141,7 +141,7 @@ test('agent workspace end-to-end flow', async ({ page }) => {
 		expect(replyText).toContain('kb.md');
 	});
 
-	await test.step('5. ask an unrelated question and expect an "I do not know" plus Google query', async () => {
+	await test.step('5. ask an unrelated question and expect a web-search fallback with a cited source', async () => {
 		await page
 			.getByPlaceholder("Ask about your project's documents")
 			.fill('In what year did the Berlin Wall fall?');
@@ -150,7 +150,20 @@ test('agent workspace end-to-end flow', async ({ page }) => {
 		const assistantReplies = page.locator('.message.assistant .markdown-content');
 		await expect(assistantReplies).toHaveCount(2, { timeout: 150_000 });
 		const replyText = (await assistantReplies.nth(1).innerText()).toLowerCase();
-		expect(replyText.includes('google') || replyText.includes('search')).toBe(true);
+		expect(replyText).toContain('http');
+		expect(replyText).toContain('1989');
+	});
+
+	await test.step('5b. explicitly ask to search the web and expect a cited web source', async () => {
+		await page
+			.getByPlaceholder("Ask about your project's documents")
+			.fill('Search the web for the current version of the SvelteKit framework.');
+		await page.getByRole('button', { name: 'Send message' }).click();
+
+		const assistantReplies = page.locator('.message.assistant .markdown-content');
+		await expect(assistantReplies).toHaveCount(3, { timeout: 150_000 });
+		const replyText = (await assistantReplies.nth(2).innerText()).toLowerCase();
+		expect(replyText).toContain('http');
 	});
 
 	const renamedSessionName = `Renamed Chat ${runId}`;
@@ -167,7 +180,7 @@ test('agent workspace end-to-end flow', async ({ page }) => {
 		await page.getByPlaceholder("Ask about your project's documents").fill('ok');
 		await page.getByRole('button', { name: 'Send message' }).click();
 		const assistantReplies = page.locator('.message.assistant .markdown-content');
-		await expect(assistantReplies).toHaveCount(3, { timeout: 150_000 });
+		await expect(assistantReplies).toHaveCount(4, { timeout: 150_000 });
 
 		// Reload to confirm the name persisted server-side and was not overwritten.
 		await page.reload();
