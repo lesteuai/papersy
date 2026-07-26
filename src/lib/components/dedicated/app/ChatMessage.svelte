@@ -5,15 +5,15 @@
 	let { message }: { message: ChatMessage } = $props();
 </script>
 
-<div class="message" class:user={message.role === 'user'} class:ai={message.role === 'ai'}>
-	<span class="label">{message.role === 'user' ? 'You' : 'AI'}</span>
+<div class="message" class:user={message.role === 'user'} class:assistant={message.role === 'assistant'}>
+	<span class="label">{message.role === 'user' ? 'You' : 'Assistant'}</span>
 	{#if message.loading}
 		<p class="loading-dots">
 			<span class="dot" style="animation-delay: 0ms;"></span>
 			<span class="dot" style="animation-delay: 150ms;"></span>
 			<span class="dot" style="animation-delay: 300ms;"></span>
 		</p>
-	{:else if message.role === 'ai'}
+	{:else if message.role === 'assistant'}
 		<div class="markdown-content">{@html marked.parse(message.text)}</div>
 	{:else}
 		<p>{message.text}</p>
@@ -42,7 +42,7 @@
 			}
 		}
 
-		&.ai {
+		&.assistant {
 			align-self: flex-start;
 			align-items: flex-start;
 
