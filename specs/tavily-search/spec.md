@@ -62,3 +62,4 @@ Known non-failure: running the `client` project prints a post-summary `[vite] (s
 
 ## Change Log
 - 2026-07-26: update: added AC-7 after the Phase 5 code review found the Tavily feature made an existing unsanitized `{@html}` render path reachable by third-party web content (commits d4caf59, b19f8a3, 25f8e21)
+- 2026-07-26: fix: corrected the documented DOMPurify no-DOM behavior. It throws `TypeError: DOMPurify.sanitize is not a function` under SSR rather than returning input unchanged, verified by running the installed package under Node. The fail-open path exists but needs a partial DOM shim, not a missing window. Docs only, no behavior change.

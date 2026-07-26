@@ -204,7 +204,9 @@ Single message bubble. Assistant messages render markdown-formatted HTML; user m
 
 DOMPurify runs with its default configuration on purpose. The default allow-list already covers every tag the component's `:global()` style rules target (`h1` through `h6`, `p`, `ul`, `ol`, `li`, `code`, `pre`, `blockquote`, `strong`, `em`, `a`, `hr`), while stripping `script`, `on*` event-handler attributes and `javascript:` URLs. Narrowing `ALLOWED_TAGS` would silently flatten real replies, so it should not be tightened without checking those style rules first.
 
-This depends on `ssr = false` (set in `src/routes/+layout.ts`). DOMPurify sets `isSupported = false` when constructed without a DOM, and its `sanitize` then returns the input unchanged rather than throwing. Because no component in this app runs server-side, the sanitizer always has a real DOM to work with. Turning SSR on for this route would silently disable sanitization instead of producing an error, which is also why the plain `dompurify` package is used here rather than `isomorphic-dompurify`.
+This depends on `ssr = false` (set in `src/routes/+layout.ts`), which is why the plain `dompurify` package is used here rather than `isomorphic-dompurify`. `dompurify` calls `createDOMPurify()` at module evaluation and resolves its window through `typeof window === 'undefined' ? null : window`. Under Node that argument is `null`, so the constructor sets `isSupported = false` and returns early, before `sanitize` is ever assigned to the instance. Rendering this component server-side therefore throws `TypeError: DOMPurify.sanitize is not a function` rather than emitting unsanitized HTML. The failure is loud, not silent.
+
+The `if (!DOMPurify.isSupported) return dirty;` guard inside `sanitize`, which does return input unchanged, is reachable only on the other path: a window object that exists but whose `document.implementation.createHTMLDocument` is missing, such as a partial DOM shim. Plain Node SSR never reaches it, because there is no window at all.
 
 ### ChatView
 
