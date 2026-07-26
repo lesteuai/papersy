@@ -1,6 +1,6 @@
 # Spec: Human-Agent Workplace
 
-Status: approved
+Status: verified
 Request: read @tasks.txt
 
 ```
@@ -175,6 +175,36 @@ Three defects were found during verification and fixed, each committed separatel
 - A late history fetch overwrote locally appended messages when a user sent before the initial load resolved, leaving the conversation blank (commit 2a3455e).
 - `plainto_tsquery` joined terms with AND, so one incidental word absent from a document silenced the entire full-text arm and reduced hybrid search to vector-only (commit 2e24256).
 - `checkLlmHealth` pings a public OpenRouter endpoint that returns 200 for an invalid key, so real model failures escaped as HTTP 500 instead of a 503 the UI can show (commit 52c989f).
+
+## Code Review
+
+Run by the user with `/code-review medium` after verification. It reviewed `git diff HEAD~1`, which by then was commit `8bec52a`, a later change made outside the spec work rather than the pivot itself. Nine findings were reported and each was checked directly before acting; eight were reproduced and fixed, one was misattributed.
+
+Fixed in commit e9b3940:
+
+- `SessionList.svelte` lost `aria-label="New chat"` when the button changed from a glyph to a text label. This broke `getByLabel('New chat')` at `e2e/workspace.e2e.ts:121` and removed the button's only accessible name. Reproduced as a real 480s timeout, the whole e2e run taking 8 minutes instead of 25 seconds.
+- Two `h2` rules survived the deletion of the headings they styled, in `SessionList.svelte` and `p/[projectId]/+layout.svelte`. `npm run check` warnings dropped from 4 to 2.
+
+Fixed in commit 0b78770:
+
+- The session load sat in `+page.server.ts`, so only `/` restored it. Reloading `/p/<id>` left `$loggedIn` false and hid the logout button. Moved to `+layout.server.ts`.
+- The store was set in `onMount`, after first paint, so the login card still flashed on reload. Moved to `+layout.ts`, which runs before the first render.
+- The sync only ever set true, so a load reporting no session could not clear a stale true. It now assigns the value.
+- `auth.api.getSession` was unguarded, turning a database or auth outage into the error page instead of a usable login form. Now wrapped, falling back to `{ loggedIn: false }`.
+
+Fixed in commit 18c43a4:
+
+- `Number(env.MAX_CHARS) || 500_000` silently swallowed `MAX_CHARS=0`, an empty string and typos like `500k`, and accepted a negative value that rejected every upload. Bad values now warn and fall back.
+- Seven places still documented the withdrawn fixed 45,000 cap, and `agent-docs/config.md` had no `MAX_CHARS` entry at all. The SPA notes in six files also claimed no server load exists anywhere, which stopped being true once the session load was added.
+
+Two corrections to the review's findings:
+
+- The review reported the unused `.docs-panel h2` selector at `+layout.svelte:232`. It is at line 139. The finding itself was valid and is fixed.
+- The claim that `npm run lint` fails because of commit `8bec52a` is misattributed. This repo has no prettier config, so prettier falls back to 2-space and double quotes against a codebase written with tabs and single quotes; `prettier --check .` fails on 75 files and `prettier-plugin-svelte` cannot infer a parser for `.svelte` files at all. Lint was already broken repo-wide. Left alone deliberately rather than folding a 75-file reformat into these fixes.
+
+One defect the review missed was found while fixing the others: `e2e/workspace.e2e.ts` step 7 asserted the literal strings `45001` and `45000` against a fixture checked in at a fixed 45,001 bytes, but `.env` sets `MAX_CHARS=1000000`. That upload would have been accepted, so the assertion could never pass. The fixture is now generated at `MAX_CHARS + 1000` and both assertions derive from the configured limit, so the test follows the env instead of a stale constant. `e2e/fixtures/oversized.txt` was deleted, since a fixed-size file cannot track a configurable limit.
+
+Post-fix state: `npm run build` exit 0, `npx vitest --run` 6 files and 23 tests passed, `npx playwright test` 1 passed in 15.7s with a genuine exit code of 0.
 
 ## Open Questions
 
