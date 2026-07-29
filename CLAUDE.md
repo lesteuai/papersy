@@ -48,6 +48,10 @@ Detailed documentation organized by topic:
 - [Server Modules](agent-docs/server.md) — Database, auth, LLM orchestration
 - [Routes & API](agent-docs/routes.md) — Page routing, REST endpoints
 
+## Specs and Plans
+
+- Feature specs (sdd workflow): `agent-docs/specs/<YYMMDD>-<slug>/`
+
 ## Key Conventions
 
 **Naming:**
