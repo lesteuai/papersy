@@ -37,20 +37,20 @@ A full-stack project-based agent workspace. Built with SvelteKit 5 (SPA mode) + 
 
 Detailed documentation organized by topic:
 
-- [Configuration](agent-docs/config.md) — Framework, environment variables
-- [Architecture](agent-docs/architecture.md) — System design, key concepts, data flow
-- [src/lib Overview](agent-docs/lib-overview.md) — Library structure, patterns, imports
-- [Components](agent-docs/components.md) — Atomic Design system, props, usage
-- [SCSS & Styling](agent-docs/scss.md) — Theme system, breakpoints, design tokens
-- [Stores](agent-docs/stores.md) — Svelte stores (auth, theme)
-- [Types & Utilities](agent-docs/types.md) — Shared TypeScript types, enums (JobStatus)
-- [Static Data](agent-docs/data.md) — Site metadata
-- [Server Modules](agent-docs/server.md) — Database, auth, LLM orchestration
-- [Routes & API](agent-docs/routes.md) — Page routing, REST endpoints
+- [Configuration](docs/agent-docs/config.md) — Framework, environment variables
+- [Architecture](docs/agent-docs/architecture.md) — System design, key concepts, data flow
+- [src/lib Overview](docs/agent-docs/lib-overview.md) — Library structure, patterns, imports
+- [Components](docs/agent-docs/components.md) — Atomic Design system, props, usage
+- [SCSS & Styling](docs/agent-docs/scss.md) — Theme system, breakpoints, design tokens
+- [Stores](docs/agent-docs/stores.md) — Svelte stores (auth, theme)
+- [Types & Utilities](docs/agent-docs/types.md) — Shared TypeScript types, enums (JobStatus)
+- [Static Data](docs/agent-docs/data.md) — Site metadata
+- [Server Modules](docs/agent-docs/server.md) — Database, auth, LLM orchestration
+- [Routes & API](docs/agent-docs/routes.md) — Page routing, REST endpoints
 
 ## Specs and Plans
 
-- Feature specs (sdd workflow): `agent-docs/specs/<YYMMDD>-<slug>/`
+- Feature specs (sdd workflow): `docs/agent-docs/specs/<YYMMDD>-<slug>/`
 
 ## Key Conventions
 
@@ -94,7 +94,7 @@ Detailed documentation organized by topic:
 - **Embedding health check**: Before the storing step of ingestion, and before chat retrieval, the system checks embedding service health. If unavailable, ingestion fails or chat returns 503.
 - **Service health checks**: Both the chat model and embedding service are pinged (5s timeout) against `https://openrouter.ai/api/v1/models` before use, to fail fast with 503.
 - **`sslmode=require` is mandatory**: `src/lib/server/db/index.ts` and `drizzle.config.ts` both have `PG_SSL` set to true; the managed host refuses insecure connections, and the failure mode without it is a silent hang during `drizzle-kit migrate`, not a clear error.
-- **OpenRouter budget**: `agent-docs/config.md` documents how to check the current key's spend cap (`GET /api/v1/key`) versus the account's purchased balance (`GET /api/v1/credits`); the two are different numbers.
+- **OpenRouter budget**: `docs/agent-docs/config.md` documents how to check the current key's spend cap (`GET /api/v1/key`) versus the account's purchased balance (`GET /api/v1/credits`); the two are different numbers.
 - **Auth is wide open for now**: Email verification is off and the old 100-user sign-up cap is removed, so sign-up succeeds for anyone reaching the deployed origin.
 - **Browser tests use system Chrome**: Both `playwright.config.ts` and the `playwright()` provider options in `vite.config.ts` pass `channel: 'chrome'`, because the bundled Chromium download does not work in this environment.
 - **Playwright's webServer must use port 5173**: not the default 4173 — `.env` sets `ORIGIN=http://localhost:5173` and better-auth rejects requests from any other origin.
