@@ -1,0 +1,9 @@
+AI Agents vs Agentic AI concept, application.pdf:
+- Retrieval + citation: "According to the paper, what are the three core characteristics of AI Agents?" (Answer is autonomy, task-specificity, reactivity/adaptation — confirms chunking, hybrid search, and source citation work.)
+- Synthesis across the doc: "What distinguishes Agentic AI from a single AI Agent, and what are its main challenges?" (Spans multiple sections — tests whether the agent pulls from more than one chunk coherently.)
+- Negative / hallucination guard: "What does this paper say about Large Language Models in vision tasks?" (The paper discusses LIMs for vision but says little specific; also try a totally out-of-scope fact like "what did the paper say about the stock market?" — the agent should say it doesn't know and suggest a Google query, not fabricate. This tests the honesty path.)
+
+Types of AI Agents _ IBM:
+- Retrieval + citation: "What are the 5 types of AI agents according to this article?" (Also exists for one type: "What are the four components of a learning agent?" — performance element, learning element, critic, problem generator. Confirms precise fact extraction + source citation.)
+- Synthesis across the doc: "How do model-based reflex agents differ from simple reflex agents?" (Spans two sections, requires the agent to compare rather than quote a single chunk.)
+- Negative / hallucination guard: "Does this article mention the ReAct framework or chain-of-thought prompting?" (Not in the IBM doc — unlike the Information Fusion paper which covers both. The agent should say it didn't appear, not bring in knowledge from the other paper's context or its own training.)
