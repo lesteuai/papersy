@@ -20,7 +20,7 @@ Built with SvelteKit 5 (SPA mode) + TypeScript + PostgreSQL (pgvector) + LangCha
 ## Prerequisites
 
 - Node.js 20+
-- pnpm
+- bun
 - PostgreSQL with the pgvector extension (see `docker/postgres.yaml`)
 - An OpenRouter API key for chat and embeddings
 
@@ -35,7 +35,7 @@ docker compose -f docker/postgres.yaml up -d
 
 **2. Install dependencies**
 ```sh
-pnpm install
+bun install
 ```
 
 **3. Configure environment**
@@ -64,18 +64,18 @@ Available environment variables:
 
 **4. Push database schema**
 ```sh
-pnpm run db:generate       # generate migration files from schema changes
-pnpm run db:migrate        # run pending migrations on the database
+bun run db:generate       # generate migration files from schema changes
+bun run db:migrate        # run pending migrations on the database
 ```
 
 **5. Generate the better-auth schema** (only needed after auth config changes)
 ```sh
-pnpm run auth:schema
+bun run auth:schema
 ```
 
 **6. Start dev server**
 ```sh
-pnpm run dev
+bun run dev
 ```
 
 Open http://localhost:5173 in your browser.
@@ -86,21 +86,21 @@ Open http://localhost:5173 in your browser.
 
 | Command | Context | Purpose |
 |---|---|---|
-| `pnpm run dev` | **Dev** | Start development server (Vite) with hot module reloading |
-| `pnpm run build` | **Prod** | Create production-optimized build |
-| `pnpm run preview` | **Prod** (testing before deploy) | Preview the production build locally |
-| `pnpm run prepare` | Auto | SvelteKit sync (runs automatically on install) |
-| `pnpm run check` | **Dev** / CI | Type-check TypeScript and Svelte components with strict mode |
-| `pnpm run check:watch` | **Dev** | Run type-checking in watch mode (re-runs on file changes) |
-| `pnpm run lint` | **Dev** / CI | Check code with Prettier and ESLint (no modifications) |
-| `pnpm run format` | **Dev** | Auto-format all files with Prettier |
-| `pnpm run test:unit` | **Dev** / CI | Run unit tests with Vitest |
-| `pnpm run test` | **Dev** / CI | Run all tests (unit + E2E) |
-| `pnpm run test:e2e` | **Dev** / CI | Run end-to-end tests with Playwright |
-| `pnpm run db:generate` | **Dev** | Generate migration files from schema changes |
-| `pnpm run db:migrate` | **Prod** (deployment) | Run pending migrations on database |
-| `pnpm run db:studio` | **Dev** | Open Drizzle Studio for interactive database browser |
-| `pnpm run auth:schema` | **Dev** | Generate better-auth schema types (run after auth changes) |
+| `bun run dev` | **Dev** | Start development server (Vite) with hot module reloading |
+| `bun run build` | **Prod** | Create production-optimized build |
+| `bun run preview` | **Prod** (testing before deploy) | Preview the production build locally |
+| `bun run prepare` | Auto | SvelteKit sync (runs automatically on install) |
+| `bun run check` | **Dev** / CI | Type-check TypeScript and Svelte components with strict mode |
+| `bun run check:watch` | **Dev** | Run type-checking in watch mode (re-runs on file changes) |
+| `bun run lint` | **Dev** / CI | Check code with Prettier and ESLint (no modifications) |
+| `bun run format` | **Dev** | Auto-format all files with Prettier |
+| `bun run test:unit` | **Dev** / CI | Run unit tests with Vitest |
+| `bun run test` | **Dev** / CI | Run all tests (unit + E2E) |
+| `bun run test:e2e` | **Dev** / CI | Run end-to-end tests with Playwright |
+| `bun run db:generate` | **Dev** | Generate migration files from schema changes |
+| `bun run db:migrate` | **Prod** (deployment) | Run pending migrations on database |
+| `bun run db:studio` | **Dev** | Open Drizzle Studio for interactive database browser |
+| `bun run auth:schema` | **Dev** | Generate better-auth schema types (run after auth changes) |
 
 ### Debugging
 

@@ -4,7 +4,7 @@
 
 - **Language**: TypeScript
 - **Framework**: SvelteKit 5 + Vite
-- **Package Manager**: npm
+- **Package Manager**: bun
 - **Build**: `adapter-node` (SPA mode: `ssr = false` in `+layout.ts`)
 - **Styling**: SCSS with CSS custom properties, dark/light theming
 - **Add-ons**: prettier, eslint, vitest, playwright, tailwindcss, better-auth, mdsvex, mcp, langchain, markitdown-ts, zod, pg, postgres, drizzle-orm

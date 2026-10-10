@@ -105,22 +105,22 @@ Detailed documentation organized by topic:
 
 ```bash
 # Install dependencies
-npm install
+bun install
 
 # Setup database
-npm run db:migrate
+bun run db:migrate
 
 # Generate auth schema
-npm run auth:schema
+bun run auth:schema
 
 # Start dev server
-npm run dev
+bun run dev
 
 # Build for production
-npm run build
+bun run build
 
 # Start production server
-npm run preview
+bun run preview
 ```
 
 ## Responsive Behavior
@@ -136,3 +136,9 @@ Four tools available for working with Svelte:
 2. **get-documentation** — fetch full content
 3. **svelte-autofixer** — analyze code before sending
 4. **playground-link** — generate Svelte Playground links
+
+## Specs and Plans
+- Feature specs (sdd workflow): `docs/agent-docs/specs/<YYMMDD>-<slug>/`
+- Implementation plans (pdd workflow): `docs/agent-docs/plans/<YYMMDD>-<slug>/`
+
+<!-- docs-baseline: 100f7c825931579bba5cd8e7c060b77f9571e998 -->
